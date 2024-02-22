@@ -1,5 +1,7 @@
 <?php
 
+$title = 'Monitoring Scripts';
+
 require_once __DIR__ . '/../app.php';
 
 $model = new Script($app->db);

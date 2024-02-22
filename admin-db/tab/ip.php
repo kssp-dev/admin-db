@@ -1,5 +1,7 @@
 <?php
 
+$title = 'IP Addresses';
+
 require_once __DIR__ . '/../app.php';
 
 $model = new Ip($app->db);

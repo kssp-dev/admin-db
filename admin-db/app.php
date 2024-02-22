@@ -19,7 +19,11 @@ class AdminDbApp extends \Atk4\Ui\App {
     function __construct() {
         parent::__construct();
 
-		global $db_dsn, $db_user, $db_psw, $app_url;
+		global $db_dsn, $db_user, $db_psw, $app_url, $title;
+		
+		if (!empty($title)) {
+			$this->title = $this->title . ' - ' . $title;
+		}
         
         $this->db = \Atk4\Data\Persistence::connect($db_dsn, $db_user, $db_psw);
        
