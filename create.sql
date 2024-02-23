@@ -1,5 +1,6 @@
 CREATE EXTENSION citext;
 
+
 CREATE TABLE "public"."ip" ( 
   "ip" VARCHAR(15) NOT NULL,
   "primary_ip" VARCHAR(15) NULL,
@@ -8,7 +9,11 @@ CREATE TABLE "public"."ip" (
   CONSTRAINT "check_ip" CHECK ("ip" ~ '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
 );
 
+CREATE UNIQUE INDEX "ip_pair_key" ON "public"."ip" ("ip", "primary_ip");
+
+
 CREATE VIEW "public"."primary_ip" AS SELECT "ip" FROM "ip" WHERE "primary_ip" IS NULL;
+
 
 CREATE TABLE "public"."scripts" ( 
   "id" SERIAL,
@@ -23,9 +28,10 @@ CREATE TABLE "public"."scripts" (
   "logic" TEXT NULL,
   "description" TEXT NULL,
   CONSTRAINT "scripts_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "unique_sctipt_file" UNIQUE ("script_file"),
+  --CONSTRAINT "unique_sctipt_file" UNIQUE ("script_file"),
   CONSTRAINT "fk_script_ip" FOREIGN KEY("script_ip") REFERENCES ip("ip"),
   CONSTRAINT "fk_database_ip" FOREIGN KEY("database_ip") REFERENCES ip("ip")
 );
 
---CREATE UNIQUE INDEX "unique_sctipt_file_idx" ON "public"."scripts" INCLUDE ("script_file");
+CREATE UNIQUE INDEX "sctipt_file_key" ON "public"."scripts" ("script_file");
+

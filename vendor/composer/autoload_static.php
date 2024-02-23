@@ -18,6 +18,10 @@ class ComposerStaticInita94beddf9265bbe5cdfb7e12fa5c4ad2
     );
 
     public static $prefixLengthsPsr4 = array (
+        's' => 
+        array (
+            'splitbrain\\PHPArchive\\' => 22,
+        ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Php83\\' => 23,
@@ -61,6 +65,10 @@ class ComposerStaticInita94beddf9265bbe5cdfb7e12fa5c4ad2
     );
 
     public static $prefixDirsPsr4 = array (
+        'splitbrain\\PHPArchive\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/splitbrain/php-archive/src',
+        ),
         'Symfony\\Polyfill\\Php83\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php83',
@@ -103,8 +111,8 @@ class ComposerStaticInita94beddf9265bbe5cdfb7e12fa5c4ad2
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Cache\\' => 
         array (
