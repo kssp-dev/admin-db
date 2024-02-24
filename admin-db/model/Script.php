@@ -47,11 +47,18 @@ class Script extends EmptyNullModel {
 				return ['database_ip' => 'There is no primary ip address ' . $this->get('database_ip') . ' in the ip addresses table - add it first'];
 			}
 			
+			$script_model = new ScriptName($app->db);
+			$script_model = $script_model->tryLoad($this->get('name'));
+			
+			if ($script_model != null && $script_model->get('id') != $this->get('id')) {
+				return ['name' => 'Script of name "' . $this->get('name') . '" already exists in the table'];
+			}
+			
 			$script_model = new ScriptFile($app->db);
 			$script_model = $script_model->tryLoad($this->get('script_file'));
 			
 			if ($script_model != null && $script_model->get('id') != $this->get('id')) {
-				return ['script_file' => 'Script file ' . $this->get('script_file') . ' already exists in the table'];
+				return ['script_file' => 'Script file "' . $this->get('script_file') . '" already exists in the table'];
 			}
 		});
     }

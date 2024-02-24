@@ -14,6 +14,8 @@ if (file_exists('composer.phar')) {
 	exit('Development site can not be updated');
 }
 
+print('Initialization... ');
+
 $site_dir = getcwd();
 
 require_once __DIR__ . '/vendor/autoload.php';
@@ -31,6 +33,7 @@ $tmp = tempnam(sys_get_temp_dir(), 'zip');
 
 $fs = new Symfony\Component\Filesystem\Filesystem();
 
+print('OK<br>');
 print('Connecting to update server... ');
 $hurl = fopen($url, "r");
 
