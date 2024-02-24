@@ -8,7 +8,7 @@ CREATE TABLE "public"."ip" (
   CONSTRAINT "fk_primary_ip" FOREIGN KEY("primary_ip") REFERENCES ip("ip"),
   CONSTRAINT "check_ip" CHECK ("ip" ~ '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
 );
-CREATE UNIQUE INDEX "ip_pair_key" ON "public"."ip" ("ip", "primary_ip");
+CREATE UNIQUE INDEX "ip_ip_primary_ip_key" ON "public"."ip" ("ip", "primary_ip");
 
 
 CREATE VIEW "public"."primary_ip" AS SELECT "ip" FROM "ip" WHERE "primary_ip" IS NULL;
@@ -30,6 +30,6 @@ CREATE TABLE "public"."scripts" (
   CONSTRAINT "fk_script_ip" FOREIGN KEY("script_ip") REFERENCES ip("ip"),
   CONSTRAINT "fk_database_ip" FOREIGN KEY("database_ip") REFERENCES ip("ip")
 );
-CREATE UNIQUE INDEX "name_key" ON "public"."scripts" ("name");
-CREATE UNIQUE INDEX "sctipt_file_key" ON "public"."scripts" ("script_file");
+CREATE UNIQUE INDEX "scripts_name_key" ON "public"."scripts" ("name");
+CREATE UNIQUE INDEX "scripts_sctipt_file_key" ON "public"."scripts" ("script_file");
 
