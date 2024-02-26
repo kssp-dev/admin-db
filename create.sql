@@ -1,6 +1,15 @@
 CREATE EXTENSION citext;
 
 
+DROP TABLE "public"."scripts";
+DROP VIEW "public"."primary_ip";
+DROP TABLE "public"."ip";
+
+
+-- IP address may be primary or secondary depending on primary_ip field is NULL or not.
+-- Primary ip is a main ip of a network interface, serving to link any services (primary_ip is NULL).
+-- Secondary ip is another ip of the network inferface, legacy or test or other purpose configured.
+-- In the case primary_ip field points to primary ip of the secondary ip's network interface.
 CREATE TABLE "public"."ip" ( 
   "ip" VARCHAR(15) NOT NULL,
   "primary_ip" VARCHAR(15) NULL,
@@ -32,4 +41,8 @@ CREATE TABLE "public"."scripts" (
 );
 CREATE UNIQUE INDEX "scripts_name_key" ON "public"."scripts" ("name");
 CREATE UNIQUE INDEX "scripts_sctipt_file_key" ON "public"."scripts" ("script_file");
+CREATE INDEX "scripts_sctipt_path_idx" ON "public"."scripts" ("script_path");
+CREATE INDEX "scripts_timer_file_idx" ON "public"."scripts" ("timer_file");
+CREATE INDEX "scripts_database_name_idx" ON "public"."scripts" ("database_name");
+CREATE INDEX "database_table" ON "public"."scripts" ("database_table");
 

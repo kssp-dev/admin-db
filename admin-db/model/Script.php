@@ -1,11 +1,13 @@
 <?php
 
-class Script extends EmptyNullModel {
+class Script extends HtmlTextModel {
     public $table = 'scripts';
 
     protected function init(): void
     {
         parent::init();
+		
+		$this->caption = 'Monitoring Script';
 
         $this->addFields([
 			  //"id",
@@ -60,7 +62,7 @@ class Script extends EmptyNullModel {
 			if ($script_model != null && $script_model->get('id') != $this->get('id')) {
 				return ['script_file' => 'Script file "' . $this->get('script_file') . '" already exists in the table'];
 			}
-		});
+		});		
     }
 }
 

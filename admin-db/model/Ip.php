@@ -6,6 +6,8 @@ class Ip extends EmptyNullModel {
     protected function init(): void
     {
         parent::init();
+		
+		$this->caption = 'IP Address';
         
         $this->removeField('id');
         $this->idField = 'ip';

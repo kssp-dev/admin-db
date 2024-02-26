@@ -6,10 +6,21 @@ require_once __DIR__ . '/../app.php';
 
 $model = new Script($app->db);
 $model->setOrder('name', 'asc');
-$crud = \Atk4\Ui\Crud::addTo($app);
-$crud->displayFields = ['name', 'logic'];
-$crud->setModel($model);
-$crud->sortable=true;
-$crud->addQuickSearch(['name', 'logic', 'script_file', 'description', 'script_ip', 'database_ip'], true);
-
+$crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
+$crud->setModel($model, [ ['_crud' => [
+	'displayFields' => ['name', 'logic']
+	, 'ipp' => 14
+	, 'quickSearch' => [
+		'name',
+		'logic',
+		'script_file',
+		'script_path',
+		'description',
+		'script_ip',
+		'timer_file',
+		'database_ip',
+		'database_name',
+		'database_table'
+	]
+]] ]);
 ?>
