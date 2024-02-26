@@ -60,8 +60,6 @@ class Ip extends EmptyNullModel {
 		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_DELETE, function (\Atk4\Data\Model $m) {
 			global $app;
 			
-			error_log(print_r("HOOK_BEFORE_DELETE Ip -" . $m->get('ip') . "-", true));
-			
 			$script_model_1 = new Script($app->db);
 			$script_model_1->addCondition('script_ip', $m->get('ip'));
 			
@@ -69,7 +67,6 @@ class Ip extends EmptyNullModel {
 			$script_model_2->addCondition('database_ip', $m->get('ip'));
 			
 			if ($script_model_1->tryLoadAny() != null || $script_model_2->tryLoadAny() != null) {
-				error_log(print_r("HOOK_BEFORE_DELETE Stop", true));
 				$m->breakHook(false);
 				return;
 			}

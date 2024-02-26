@@ -29,6 +29,23 @@ class Script extends HtmlTextModel {
 		$this->hasOne('DatabaseIp', ['model' => new PrimaryIp($this->getPersistence()), 'ourField' => 'database_ip', 'theirField' => 'ip']);
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
+			$script_path = $this->get('script_path');
+			if (!empty($script_path)) {
+				$slash = substr(preg_replace('/[^\\\\\/]+/', '', $script_path), 0, 1);
+				if (!empty($slash)) {
+					$count = 0;
+					do {
+						$script_path = preg_replace('/[\\\\\/]+\s*$/', '', $script_path, -1, $count);
+					} while ($count > 0);
+					
+					if (empty($script_path)) {
+						$script_path = $slash;
+					}
+					
+					$this->set('script_path', $script_path);
+				}
+			}
+			
 			if (preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $this->get('script_ip')) != 1) {
 				return ['script_ip' => 'IP address required'];
 			}
