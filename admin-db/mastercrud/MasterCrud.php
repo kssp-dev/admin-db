@@ -30,7 +30,15 @@ class MasterCrud extends View
     public $detailLabel = 'Details';
 
     /** @var array of properties which are reserved for MasterCrud and can't be used as model names */
-    protected $reserved_properties = ['_crud', '_tabs', '_card', 'caption', 'columnActions', 'menuActions'];
+    protected $reserved_properties = [
+		'_crud'
+		, '_tabs'
+		, '_card'
+		, 'caption'
+		, 'columnActions'
+		, 'menuActions'
+		, 'quickSearch'
+	];
 
     /** @var string Delimiter to generate url path DO NOT USED '?', '#' or '/' */
     protected $pathDelimiter = '-';
@@ -207,9 +215,6 @@ class MasterCrud extends View
 		$seed = $this->getCRUDSeed($defs);
         $crud = Crud::addTo($view, $seed);
         $crud->setModel($this->model);
-		if ($seed['quickSearch']) {
-			$crud->addQuickSearch($seed['quickSearch'], true);
-		}
 
         if (isset($crud->table->columns[$this->model->titleField])) {
             $crud->addDecorator($this->model->titleField, [Table\Column\Link::class, [], [$this->model->table . '_id' => 'id']]);
@@ -260,6 +265,10 @@ class MasterCrud extends View
      */
     public function addActions(View $crud, array $defs)
     {
+		if ($defs['quickSearch']) {
+			$crud->addQuickSearch($defs['quickSearch'], true);
+		}
+		
         if ($ma = $defs['menuActions'] ?? null) {
             is_array($ma) || $ma = [$ma];
 
@@ -271,19 +280,30 @@ class MasterCrud extends View
                 if (is_string($action)) {
                     $crud->menu->addItem($key)->on(
                         'click',
-                        new JsModal('Executing ' . $key, $this->add([VirtualPage::class])->set(static function ($p) use ($key, $crud) {
-                            // TODO: this does ont work within a tab :(
-                            $p->add(new MethodExecutor($crud->model, $key));
-                        }))
+                        new JsModal($key, $this->add([VirtualPage::class])
+							->set(
+								static function ($p) use ($key, $crud)
+								{
+									// TODO: this does ont work within a tab :(
+									$p->add(
+										new MethodExecutor($crud->model, $key)
+									);
+								}
+							)
+                        )
                     );
                 }
 
                 if ($action instanceof \Closure) {
                     $crud->menu->addItem($key)->on(
                         'click',
-                        new JsModal('Executing ' . $key, $this->add([VirtualPage::class])->set(function ($p) use ($key, $action) {
-                            $action($p, $this->model, $key);
-                        }))
+                        new JsModal($key, $this->add([VirtualPage::class])
+							->set(
+								function ($p) use ($key, $action) {
+									$action($p, $this->model, $key);
+								}
+							)
+						)
                     );
                 }
             }
