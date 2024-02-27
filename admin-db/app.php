@@ -32,12 +32,36 @@ class AdminDbApp extends \Atk4\Ui\App {
        
         $this->initLayout([\Atk4\Ui\Layout\Maestro::class]);
 		
+		// Header menu buttons
+		
 		$item = $this->layout->menu->addItem()->addClass('aligned right');
-		Atk4\Ui\Button::addTo($item, ['icon' => 'home', 'class.circular' => true])->on('click', $this->jsRedirect($app_url, false));
-		Atk4\Ui\Button::addTo($item, ['icon' => 'clone outline', 'class.circular' => true])->on('click', $this->jsRedirect($app_url, true));
+		
+		Atk4\Ui\Button::addTo($item, [
+			'icon' => 'home'
+			, 'class.circular' => true
+		])	->on('click', $this->jsRedirect($app_url, false));
+		
+		Atk4\Ui\Button::addTo($item, [
+			'icon' => 'clone outline'
+			, 'class.circular' => true
+		])	->on('click', $this->jsRedirect($app_url, true));
+		
+		// Left tabs
 
-        $this->layout->menuLeft->addItem(['Monitoring Scripts', 'icon'=>'chartline'], [$app_url . 'tab/scripts']);
-        $this->layout->menuLeft->addItem(['IP Addresses', 'icon'=>'sitemap'], [$app_url . 'tab/ip']);
+        $this->layout->menuLeft->addItem([
+			'Monitoring Scripts'
+			, 'icon'=>'chartline'
+		], [$app_url . 'tab/scripts']);
+		
+        $this->layout->menuLeft->addItem([
+			'IP Addresses'
+			, 'icon'=>'sitemap'
+		], [$app_url . 'tab/ip']);
+        
+        $this->layout->menuLeft->addItem([
+			'Administration'
+			, 'icon'=>'tools'
+		], [$app_url . 'tab/admin']);
     }
 }
 

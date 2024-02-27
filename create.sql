@@ -1,3 +1,4 @@
+-- PostgreSQL extension
 CREATE EXTENSION citext;
 
 
