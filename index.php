@@ -1,5 +1,5 @@
 <?php
 
-require 'admin-db/index.php';
+require 'admin-db/tab.php';
 
 ?>

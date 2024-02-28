@@ -1,68 +1,25 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+$app_dir = __DIR__ . '/';
 
-foreach (glob(__DIR__ . '/mastercrud/*.php') as $file) {
+require_once $app_dir . '../vendor/autoload.php';
+
+foreach (glob($app_dir . 'mastercrud/*.php') as $file) {
     require_once $file;
 }
 
-$app_url = '/' . basename(__DIR__) . '/';
+$app_uri = substr_replace($app_dir, '', 0, strlen($_SERVER['DOCUMENT_ROOT']));
+
+//error_log(print_r("_SERVER " . print_r($_SERVER, true), true));
 
 require_once 'db.php';
 
-foreach (glob(__DIR__ . '/model/*.php') as $file) {
+foreach (glob($app_dir . 'model/*.php') as $file) {
     require_once $file;
 }
 
-class AdminDbApp extends \Atk4\Ui\App {
-    public $title = 'ADMIN DATABASE';
-    public $db;
-    public $user;
-
-    function __construct() {
-        parent::__construct();
-
-		global $db_dsn, $db_user, $db_psw, $app_url, $title;
-		
-		if (!empty($title)) {
-			$this->title = $this->title . ' - ' . $title;
-		}
-        
-        $this->db = \Atk4\Data\Persistence::connect($db_dsn, $db_user, $db_psw);
-       
-        $this->initLayout([\Atk4\Ui\Layout\Maestro::class]);
-		
-		// Header menu buttons
-		
-		$item = $this->layout->menu->addItem()->addClass('aligned right');
-		
-		Atk4\Ui\Button::addTo($item, [
-			'icon' => 'home'
-			, 'class.circular' => true
-		])	->on('click', $this->jsRedirect($app_url, false));
-		
-		Atk4\Ui\Button::addTo($item, [
-			'icon' => 'clone outline'
-			, 'class.circular' => true
-		])	->on('click', $this->jsRedirect($app_url, true));
-		
-		// Left tabs
-
-        $this->layout->menuLeft->addItem([
-			'Monitoring Scripts'
-			, 'icon'=>'chartline'
-		], [$app_url . 'tab/scripts']);
-		
-        $this->layout->menuLeft->addItem([
-			'IP Addresses'
-			, 'icon'=>'sitemap'
-		], [$app_url . 'tab/ip']);
-        
-        $this->layout->menuLeft->addItem([
-			'Administration'
-			, 'icon'=>'tools'
-		], [$app_url . 'tab/admin']);
-    }
+foreach (glob($app_dir . 'app/*.php') as $file) {
+    require_once $file;
 }
 
 $app = new AdminDbApp();

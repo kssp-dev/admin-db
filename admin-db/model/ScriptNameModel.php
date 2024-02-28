@@ -1,6 +1,6 @@
 <?php
 
-class ScriptName extends \Atk4\Data\Model {
+class ScriptNameModel extends \Atk4\Data\Model {
     public $table = 'scripts';
 
     protected function init(): void
