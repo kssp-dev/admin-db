@@ -32,7 +32,7 @@ Atk4\Ui\Button::addTo($app, [
 						
 						$output = [];
 						$code = 0;
-						$res = exec('php -f "' . $app_dir . 'tool/update.php"', $output, $code);
+						$res = exec('php "' . $app_dir . 'tool/update.php" "' . getenv('ADMIN_DB_UPDATE_URL') . '"', $output, $code);
 						
 						$msg = Atk4\Ui\Message::addTo($p, [
 							$code == 0 ? 'You are lucky - the site is up to date now' : 'Error occured - the site is probably ruined'

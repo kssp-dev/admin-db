@@ -3,7 +3,11 @@
 $url = getenv('ADMIN_DB_UPDATE_URL');
 
 if (empty($url)) {
-	print('ADMIN_DB_UPDATE_URL environment variable MUST be declared');
+	$url = $argv[1];
+}
+
+if (empty($url)) {
+	print('Update URL is not provided');
 	exit(1);
 }
 
@@ -19,7 +23,7 @@ while (!(
 		file_exists($site_dir . '/index.php')
 		|| file_exists($site_dir . '/index.html')
 		|| file_exists($site_dir . '/index.htm')
-	) && file_exists($site_dir . '/vendor')
+	) && is_dir($site_dir . '/vendor')
 )) {
 	$site_dir = dirname($site_dir);
 }
@@ -101,7 +105,7 @@ try {
 				|| file_exists($path . '/index.html')
 				|| file_exists($path . '/index.htm')
 			)
-			&& file_exists($path . '/vendor')
+			&& is_dir($path . '/vendor')
 		) {	
 			$source_dir = $path;
 			break;
