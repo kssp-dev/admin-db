@@ -11,7 +11,16 @@ print('Initialization... ');
 
 $site_dir = __DIR__;
 
-while (!($site_dir == '.' || $site_dir == '/' || $site_dir == '\\' || file_exists($site_dir . '/index.php'))) {
+while (!(
+	$site_dir == '.'
+	|| $site_dir == '/'
+	|| $site_dir == '\\'
+	|| (
+		file_exists($site_dir . '/index.php')
+		|| file_exists($site_dir . '/index.html')
+		|| file_exists($site_dir . '/index.htm')
+	) && file_exists($site_dir . '/vendor')
+)) {
 	$site_dir = dirname($site_dir);
 }
 
@@ -23,16 +32,16 @@ if (!file_exists($site_dir . '/index.php')) {
 
 require_once $site_dir . '/vendor/autoload.php';
 
-$done = false;
+$fs = new Symfony\Component\Filesystem\Filesystem();
+$za = new splitbrain\PHPArchive\Zip();
+
 $code = 0;
+
+$tmp = tempnam(sys_get_temp_dir(), 'zip');
 
 $zip = tempnam(sys_get_temp_dir(), 'zip');
 unlink($zip);
 $zip = $zip . '.zip';
-
-$tmp = tempnam(sys_get_temp_dir(), 'zip');
-
-$fs = new Symfony\Component\Filesystem\Filesystem();
 
 try {
 	if (file_exists($site_dir . '/composer.phar')) {
@@ -71,7 +80,6 @@ try {
 	fclose($hurl);
 	
 	print('Extracting files... ');
-	$za = new splitbrain\PHPArchive\Zip();
 	$za->open($zip);
 	
 	if (file_exists($tmp)) {
@@ -79,7 +87,30 @@ try {
 	}
 	mkdir($tmp);
 		
-	$za->extract($tmp);		
+	$za->extract($tmp);
+	print('OK<br>');
+	
+	print('Search for source directory... ');
+	$source_dir = null;
+	
+	foreach(scandir($tmp) as $file){
+		$path = realpath($tmp . DIRECTORY_SEPARATOR . $file);
+		if (is_dir($path) && $file != '.' && $file != '..'
+			&& (
+				file_exists($path . '/index.php')
+				|| file_exists($path . '/index.html')
+				|| file_exists($path . '/index.htm')
+			)
+			&& file_exists($path . '/vendor')
+		) {	
+			$source_dir = $path;
+			break;
+		}
+	}
+	
+	if (!$source_dir) {
+		throw new Exception('Site root not found in the update archive');
+	}
 	print('OK<br>');
 	
 	print('Removing old files... ');
@@ -102,43 +133,25 @@ try {
 		} else if ($file != '.' && $file != '..') {
 			$fs->remove($path);
 		}
-	}
-	
+	}	
 	print('OK<br>');
-	print('Copying new files... ');
 	
-	foreach(scandir($tmp) as $file){
-		$path = realpath($tmp . DIRECTORY_SEPARATOR . $file);
-		if (is_dir($path) && $file != '.' && $file != '..') {	
-			$fs->mirror($path, $site_dir);
-			
-			print('OK<br>');
-			
-			$done = true;
+	print('Copying new files... ');	
+	$fs->mirror($source_dir, $site_dir);			
+	print('OK<br>');
 	
-			break;
-		}
-	}
 } catch (Exception $e) {
 	print('FAILED<br>' . $e->getMessage() . '<br>');
-	$done = true;
 	$code = 3;
-}
-	
-if (!$done) {
-	print('FAILED<br>');
-	$code = 4;
 }
 
 print('Cleanning... ');
-
 if (file_exists($zip)) {		
 	unlink($zip);
 }
 if (file_exists($tmp)) {
 	$fs->remove($tmp);
 }
-
 print('OK<br>');
 
 exit($code);
