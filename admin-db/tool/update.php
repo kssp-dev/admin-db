@@ -131,10 +131,14 @@ try {
 	foreach($dir_list as $file){
 		$path = realpath($site_dir . DIRECTORY_SEPARATOR . $file);
 		if(!is_dir($path)){
-			if (preg_match('/\.sh$/i', $file) != 1) {
+			if (
+				preg_match('/\.sh$/i', $file) != 1
+			) {
 				unlink($path);
 			}
-		} else if ($file != '.' && $file != '..') {
+		} else if (
+			preg_match('/^\./', $file) != 1
+		) {
 			$fs->remove($path);
 		}
 	}	
