@@ -1,30 +1,28 @@
 -- PostgreSQL extension
-CREATE EXTENSION citext;
+CREATE EXTENSION IF NOT EXISTS citext;
 
 
-DROP TABLE "public"."scripts";
-DROP VIEW "public"."primary_ip";
-DROP TABLE "public"."ip";
+DROP TABLE IF EXISTS "public"."scripts";
+DROP VIEW IF EXISTS "public"."primary_ip";
+DROP TABLE IF EXISTS "public"."ip";
 
 
 -- IP address may be primary or secondary depending on primary_ip field is NULL or not.
 -- Primary ip is a main ip of a network interface, serving to link any services (primary_ip is NULL).
 -- Secondary ip is another ip of the network inferface, legacy or test or other purpose configured.
 -- In the case primary_ip field points to primary ip of the secondary ip's network interface.
-CREATE TABLE "public"."ip" ( 
+CREATE TABLE IF NOT EXISTS "public"."ip" ( 
   "ip" VARCHAR(15) NOT NULL,
   "primary_ip" VARCHAR(15) NULL,
   CONSTRAINT "ip_pkey" PRIMARY KEY ("ip"),
   CONSTRAINT "fk_primary_ip" FOREIGN KEY("primary_ip") REFERENCES ip("ip"),
   CONSTRAINT "check_ip" CHECK ("ip" ~ '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
 );
-CREATE UNIQUE INDEX "ip_ip_primary_ip_key" ON "public"."ip" ("ip", "primary_ip");
+CREATE UNIQUE INDEX IF NOT EXISTS "ip_ip_primary_ip_key" ON "public"."ip" ("ip", "primary_ip");
+CREATE OR REPLACE VIEW "public"."primary_ip" AS SELECT "ip" FROM "ip" WHERE "primary_ip" IS NULL;
 
 
-CREATE VIEW "public"."primary_ip" AS SELECT "ip" FROM "ip" WHERE "primary_ip" IS NULL;
-
-
-CREATE TABLE "public"."scripts" ( 
+CREATE TABLE IF NOT EXISTS "public"."scripts" ( 
   "id" SERIAL,
   "name" VARCHAR(80) NOT NULL,
   "script_ip" VARCHAR(15) NOT NULL,
@@ -40,10 +38,10 @@ CREATE TABLE "public"."scripts" (
   CONSTRAINT "fk_script_ip" FOREIGN KEY("script_ip") REFERENCES ip("ip"),
   CONSTRAINT "fk_database_ip" FOREIGN KEY("database_ip") REFERENCES ip("ip")
 );
-CREATE UNIQUE INDEX "scripts_name_key" ON "public"."scripts" ("name");
-CREATE UNIQUE INDEX "scripts_sctipt_file_key" ON "public"."scripts" ("script_file");
-CREATE INDEX "scripts_sctipt_path_idx" ON "public"."scripts" ("script_path");
-CREATE INDEX "scripts_timer_file_idx" ON "public"."scripts" ("timer_file");
-CREATE INDEX "scripts_database_name_idx" ON "public"."scripts" ("database_name");
-CREATE INDEX "database_table" ON "public"."scripts" ("database_table");
+CREATE UNIQUE INDEX IF NOT EXISTS "scripts_name_key" ON "public"."scripts" ("name");
+CREATE UNIQUE INDEX IF NOT EXISTS "scripts_sctipt_file_key" ON "public"."scripts" ("script_file");
+CREATE INDEX IF NOT EXISTS "scripts_sctipt_path_idx" ON "public"."scripts" ("script_path");
+CREATE INDEX IF NOT EXISTS "scripts_timer_file_idx" ON "public"."scripts" ("timer_file");
+CREATE INDEX IF NOT EXISTS "scripts_database_name_idx" ON "public"."scripts" ("database_name");
+CREATE INDEX IF NOT EXISTS "database_table" ON "public"."scripts" ("database_table");
 
