@@ -14,7 +14,7 @@ $app_uri = substr_replace($app_dir, '', 0, $server_root_length);
 
 require_once $app_dir . '../vendor/autoload.php';
 
-foreach (glob($app_dir . 'mastercrud/*.php') as $file) {
+foreach (glob($app_dir . 'ui/*.php') as $file) {
     require_once $file;
 }
 

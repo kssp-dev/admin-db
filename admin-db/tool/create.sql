@@ -6,6 +6,8 @@ DROP TABLE IF EXISTS "public"."scripts";
 DROP VIEW IF EXISTS "public"."primary_ip";
 DROP TABLE IF EXISTS "public"."ip";
 
+DROP TABLE IF EXISTS "public"."export";
+
 
 -- IP address may be primary or secondary depending on primary_ip field is NULL or not.
 -- Primary ip is a main ip of a network interface, serving to link any services (primary_ip is NULL).
@@ -44,4 +46,19 @@ CREATE INDEX IF NOT EXISTS "scripts_sctipt_path_idx" ON "public"."scripts" ("scr
 CREATE INDEX IF NOT EXISTS "scripts_timer_file_idx" ON "public"."scripts" ("timer_file");
 CREATE INDEX IF NOT EXISTS "scripts_database_name_idx" ON "public"."scripts" ("database_name");
 CREATE INDEX IF NOT EXISTS "database_table" ON "public"."scripts" ("database_table");
+
+
+CREATE TABLE IF NOT EXISTS "public"."export" ( 
+  "id" SERIAL,
+  "from" VARCHAR(15) NOT NULL,
+  "to" VARCHAR(15) NOT NULL,
+  "header" TEXT NULL,
+  "row" TEXT NOT NULL,
+  "footer" TEXT NULL,
+  "link" TEXT NULL,
+  CONSTRAINT "export_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "export_from_to_key" ON "public"."export" ("from", "to");
+INSERT INTO "public"."export" ("from", "to", "row") VALUES ('scripts', 'wiki', '${name}');
+INSERT INTO "public"."export" ("from", "to", "row") VALUES ('ip', 'wiki', '${ip}');
 
