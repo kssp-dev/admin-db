@@ -8,7 +8,7 @@ class AdminDbApp extends \Atk4\Ui\App {
     function __construct() {
         parent::__construct();
 
-		global $db_dsn, $db_user, $db_psw, $app_uri, $title;
+		global $db_dsn, $db_user, $db_psw, $app_uri, $title, $tab_uri;
 		
 		if (!empty($title)) {
 			$this->title = $this->title . ' - ' . $title;
@@ -30,7 +30,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 		Atk4\Ui\Button::addTo($item, [
 			'icon' => 'clone outline'
 			, 'class.circular' => true
-		])	->on('click', $this->jsRedirect($app_uri . '..', true));
+		])	->on('click', $this->jsRedirect($tab_uri, true));
 		
 		// Left tabs
 

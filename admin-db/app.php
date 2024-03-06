@@ -2,9 +2,12 @@
 
 $app_dir = __DIR__ . '/';
 
-$server_root_length = strlen($_SERVER['DOCUMENT_ROOT']);
+//error_log(print_r("_SERVER " . print_r($_SERVER, true), true));
 
-if ($server_root_length <= 0) {
+$server_root_length = strlen($_SERVER['DOCUMENT_ROOT']);
+$tab_uri = $_SERVER['REQUEST_URI'];
+
+if ($server_root_length <= 0 || empty($tab_uri)) {
 	print_r('HTTP server required');
 	exit(1);
 }
@@ -24,8 +27,6 @@ require_once $app_dir . '../vendor/autoload.php';
 foreach (glob($app_dir . 'ui/*.php') as $file) {
     require_once $file;
 }
-
-//error_log(print_r("_SERVER " . print_r($_SERVER, true), true));
 
 require_once 'db.php';
 
