@@ -34,20 +34,40 @@ class AdminDbApp extends \Atk4\Ui\App {
 		
 		// Left tabs
 
-        $this->layout->menuLeft->addItem([
-			'Monitoring Scripts'
+        $menu = $this->layout->addMenuGroup([
+			'Monitoring'
 			, 'icon'=>'chart bar'
-		], [$app_uri . 'tab/scripts']);
+		]);
+			$this->layout->addMenuItem([
+				'Scripts'
+				, 'icon'=>'file medical alternate'
+			], [$app_uri . 'tab/scripts'], $menu);
 		
-        $this->layout->menuLeft->addItem([
-			'IP Addresses'
+        $menu = $this->layout->addMenuGroup([
+			'Network'
 			, 'icon'=>'sitemap'
-		], [$app_uri . 'tab/ip']);
+		]);
+			$this->layout->addMenuItem([
+				'IP Addresses'
+				, 'icon'=>'ellipsis horizontal'
+			], [$app_uri . 'tab/ip'], $menu);
         
-        $this->layout->menuLeft->addItem([
+        $menu = $this->layout->addMenuGroup([
 			'Administration'
 			, 'icon'=>'tools'
-		], [$app_uri . 'tab/admin']);
+		]);
+			$this->layout->addMenuItem([
+				'Site'
+				, 'icon'=>'code'
+			], [$app_uri . 'tab/site'], $menu);
+			$this->layout->addMenuItem([
+				'Export'
+				, 'icon'=>'file export'
+			], [$app_uri . 'tab/export'], $menu);
+			$this->layout->addMenuItem([
+				'Database'
+				, 'icon'=>'database'
+			], [$app_uri . 'tab/database'], $menu);
     }
 }
 

@@ -33,15 +33,23 @@ class LoaderEx extends Atk4\Ui\Loader {
 		}
     }
 
-	function addReloadButton($app, $uri) {
+	function addRedirectButton($app, $uri) {
 		Atk4\Ui\Button::addTo($this, [
-			is_array($uri) ? $uri['caption'] : 'Reload site'
-			,'icon' => 'sync'
+			is_array($uri) ? $uri[0] : 'Redirect'
+			,'icon' => is_array($uri) ? $uri['icon'] : 'sign in alternate'
 		])	->addClass('big blue button')
 			->on('click', $app->jsRedirect(
 				is_array($uri) ? $uri['uri'] : strval($uri)
 				, false
 			));
+	}
+
+	function addReloadButton($app, $uri) {
+		$this->addRedirectButton($app, [
+			'Reload site'
+			, 'icon' => 'sync'
+			, 'uri' => $uri
+		]);
 	}
 
 }

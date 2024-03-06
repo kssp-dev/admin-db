@@ -11,6 +11,13 @@ if ($server_root_length <= 0) {
 
 $app_uri = substr_replace($app_dir, '', 0, $server_root_length);
 
+// Home tab redirect
+
+if (!isset($title)) {
+	header("Location: " . $app_uri . "tab/scripts.php");
+	exit;
+}
+
 
 require_once $app_dir . '../vendor/autoload.php';
 
