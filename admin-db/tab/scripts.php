@@ -7,8 +7,7 @@ require_once __DIR__ . '/../app.php';
 $model = new Script($app->db);
 $model->setOrder('name', 'asc');
 
-$crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
-$crud->setModel($model, [
+$crud_options = [
 	[
 		'_crud' => [
 			'displayFields' => ['name', 'logic']
@@ -27,11 +26,20 @@ $crud->setModel($model, [
 		'database_name',
 		'database_table'
 	]
-	, 'menuActions' => [
-		'Export to Wiki' => function (Atk4\Ui\VirtualPage $vp, Script $model, string $caption) {
-			\Atk4\Ui\Icon::addTo($vp, ['content' => 'drafting compass']);
-			\Atk4\Ui\Text::addTo($vp, ['content' => 'Under constraction']);
-		}
-	]
-]);
+	, 'menuActions' => []
+];
+				
+$export_model = new Export($app->db);
+$export_model->addCondition('from', 'scripts');
+
+foreach ($export_model as $id => $entity) {
+	$crud_options['menuActions']['Export to ' . $entity->get('to')] = function (Atk4\Ui\VirtualPage $vp, Script $model, string $caption) {
+		\Atk4\Ui\Icon::addTo($vp, ['content' => 'drafting compass']);
+		\Atk4\Ui\Text::addTo($vp, ['content' => 'Under constraction']);
+	};
+}
+
+$crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
+$crud->setModel($model, $crud_options);
+
 ?>

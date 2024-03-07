@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS "public"."export" (
   "from" VARCHAR(15) NOT NULL,
   "to" VARCHAR(15) NOT NULL,
   "header" TEXT NULL,
-  "row" TEXT NOT NULL,
+  "row" TEXT NULL,
   "footer" TEXT NULL,
   "link" TEXT NULL,
   CONSTRAINT "export_pkey" PRIMARY KEY ("id")

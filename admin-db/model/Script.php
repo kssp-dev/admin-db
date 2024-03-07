@@ -10,7 +10,6 @@ class Script extends HtmlTextModel {
 		$this->caption = 'Monitoring Script';
 
         $this->addFields([
-			  //"id",
 			  "name" => ['required' => true],
 			  "script_ip" => ['required' => true],
 			  "script_file" => ['required' => true],

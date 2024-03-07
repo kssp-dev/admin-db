@@ -1,8 +1,25 @@
 <?php
 
-$title = 'Export Administration';
+$title = 'Export Templates';
 
 require_once __DIR__ . '/../app.php';
+
+$model = new Export($app->db);
+$model->setOrder('from', 'asc');
+
+$crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
+$crud->setModel($model, [
+	[
+		'_crud' => [
+			'displayFields' => ['from', 'to']
+			, 'editFields' => ['header', 'row', 'footer', 'link']
+			, 'ipp' => 14
+		]
+	]
+	, 'quickSearch' => [
+		'to'
+	]
+]);
 
 
 ?>
