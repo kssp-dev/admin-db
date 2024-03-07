@@ -12,6 +12,7 @@ class Export extends EmptyNullModel {
         $this->addFields([
 			"from" => ['required' => true],
 			"to" => ['required' => true],
+			"icon",
 			"header" => ['type' => 'text'],
 			"row" => ['type' => 'text'],
 			"footer" => ['type' => 'text'],

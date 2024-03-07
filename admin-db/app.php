@@ -5,7 +5,7 @@ $app_dir = __DIR__ . '/';
 //error_log(print_r("_SERVER " . print_r($_SERVER, true), true));
 
 $server_root_length = strlen($_SERVER['DOCUMENT_ROOT']);
-$tab_uri = $_SERVER['REQUEST_URI'];
+$tab_uri = $_SERVER['PHP_SELF'];
 
 if ($server_root_length <= 0 || empty($tab_uri)) {
 	print_r('HTTP server required');

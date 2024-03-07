@@ -12,7 +12,7 @@ Atk4\Ui\Button::addTo($app, [
 ->addClass('big red button')
 ->on(
 	'click',
-	new ModalLoader('Updating the site', $app,
+	new ModalLoader('Updating the site',
 		function (LoaderEx $p) {
 			global $app, $app_uri, $app_dir;
 			

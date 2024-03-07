@@ -12,12 +12,13 @@ $crud->setModel($model, [
 	[
 		'_crud' => [
 			'displayFields' => ['from', 'to']
-			, 'editFields' => ['header', 'row', 'footer', 'link']
+			, 'editFields' => ['icon', 'header', 'row', 'footer', 'link']
 			, 'ipp' => 14
 		]
 	]
 	, 'quickSearch' => [
-		'to'
+		'from'
+		, 'to'
 	]
 ]);
 

@@ -1,8 +1,12 @@
 <?php
 
+require_once 'LoaderEx.php';
+
 class ModalLoader extends Atk4\Ui\Js\JsModal {
 
-    function __construct($title, $app, $act) {
+    function __construct($title, $act) {
+		global $app;
+				
 		$view = $app->add([Atk4\Ui\VirtualPage::class])
 				->set(
 					function (Atk4\Ui\VirtualPage $vp) use ($title, $act) {

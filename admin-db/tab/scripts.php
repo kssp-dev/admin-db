@@ -33,10 +33,10 @@ $export_model = new Export($app->db);
 $export_model->addCondition('from', 'scripts');
 
 foreach ($export_model as $id => $entity) {
-	$crud_options['menuActions']['Export to ' . $entity->get('to')] = function (Atk4\Ui\VirtualPage $vp, Script $model, string $caption) {
-		\Atk4\Ui\Icon::addTo($vp, ['content' => 'drafting compass']);
-		\Atk4\Ui\Text::addTo($vp, ['content' => 'Under constraction']);
-	};
+	$crud_options['menuActions']['Export to ' . $entity->get('to')] = [
+		'icon' => empty($entity->get('icon')) ? null : $entity->get('icon'),
+		'action' => new ModalExporter(new Script($app->db), $entity)
+	];
 }
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);

@@ -273,12 +273,24 @@ class MasterCrud extends View
             is_array($ma) || $ma = [$ma];
 
             foreach ($ma as $key => $action) {
+				$icon = null;
                 if (is_numeric($key)) {
                     $key = $action;
                 }
+                if (is_array($action)) {
+					if (!empty($action[0])) {
+						$key = $action[0];
+					}
+					if (!empty($action['icon'])) {
+						$icon = $action['icon'];
+					}
+					if (isset($action['action'])) {
+						$action = $action['action'];
+					}
+                }
 
                 if (is_string($action)) {
-                    $crud->menu->addItem($key)->on(
+                    $crud->menu->addItem([$key, 'icon' => $icon])->on(
                         'click',
                         new JsModal($key, $this->add([VirtualPage::class])
 							->set(
@@ -295,7 +307,7 @@ class MasterCrud extends View
                 }
 
                 if ($action instanceof \Closure) {
-                    $crud->menu->addItem($key)->on(
+                    $crud->menu->addItem([$key, 'icon' => $icon])->on(
                         'click',
                         new JsModal($key, $this->add([VirtualPage::class])
 							->set(
@@ -304,6 +316,12 @@ class MasterCrud extends View
 								}
 							)
 						)
+                    );
+                }
+
+                if ($action instanceof JsModal) {
+                    $crud->menu->addItem([$key, 'icon' => $icon])->on(
+                        'click', $action
                     );
                 }
             }

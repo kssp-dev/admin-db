@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS "public"."export" (
   "id" SERIAL,
   "from" VARCHAR(15) NOT NULL,
   "to" VARCHAR(15) NOT NULL,
+  "icon" VARCHAR(15) NULL,
   "header" TEXT NULL,
   "row" TEXT NULL,
   "footer" TEXT NULL,
@@ -59,6 +60,6 @@ CREATE TABLE IF NOT EXISTS "public"."export" (
   CONSTRAINT "export_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "export_from_to_key" ON "public"."export" ("from", "to");
-INSERT INTO "public"."export" ("from", "to", "row") VALUES ('scripts', 'wiki', '${name}');
-INSERT INTO "public"."export" ("from", "to", "row") VALUES ('ip', 'wiki', '${ip}');
+INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('scripts', 'wiki', 'wikipedia w');
+INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('ip', 'wiki', 'wikipedia w');
 

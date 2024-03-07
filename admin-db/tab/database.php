@@ -20,7 +20,7 @@ if (file_exists($app_dir . '../composer.phar')) {
 	->addClass('big red button')
 	->on(
 		'click',
-		new ModalLoader('Creating database structure', $app,
+		new ModalLoader('Creating database structure',
 			function (LoaderEx $p) {
 				global $app, $app_uri, $app_dir;
 				$code = 0;
