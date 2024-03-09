@@ -47,6 +47,8 @@ CREATE INDEX IF NOT EXISTS "scripts_timer_file_idx" ON "public"."scripts" ("time
 CREATE INDEX IF NOT EXISTS "scripts_database_name_idx" ON "public"."scripts" ("database_name");
 CREATE INDEX IF NOT EXISTS "database_table" ON "public"."scripts" ("database_table");
 
+ALTER TABLE "public"."scripts" ADD COLUMN IF NOT EXISTS "updated" date NOT NULL DEFAULT NOW();
+
 
 CREATE TABLE IF NOT EXISTS "public"."export" ( 
   "id" SERIAL,

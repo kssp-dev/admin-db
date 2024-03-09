@@ -5,12 +5,36 @@ $title = 'Monitoring Scripts';
 require_once __DIR__ . '/../app.php';
 
 $model = new Script($app->db);
-$model->setOrder('name', 'asc');
+$model->setOrder('updated', 'asc');
 
 $crud_options = [
 	[
 		'_crud' => [
-			'displayFields' => ['name', 'logic']
+			'displayFields' => ['name', 'updated', 'logic']
+			, 'addFields' => [
+				"name"
+				, "script_ip"
+				, "script_file"
+				, "script_path"
+				, "timer_file"
+				, "logic"
+				, "database_ip"
+				, "database_name"
+				, "database_table"
+				, "description"
+			]
+			, 'editFields' => [
+				"name"
+				, "script_ip"
+				, "script_file"
+				, "script_path"
+				, "timer_file"
+				, "logic"
+				, "database_ip"
+				, "database_name"
+				, "database_table"
+				, "description"
+			]
 			, 'ipp' => 14
 		]
 	]

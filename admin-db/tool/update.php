@@ -115,7 +115,9 @@ try {
 	if (!$source_dir) {
 		throw new Exception('Site root not found in the update archive');
 	}
+	print('OK<br>');
 	
+	print('Cleanning up source directory... ');
 	foreach(scandir($source_dir) as $file){
 		$path = realpath($source_dir . DIRECTORY_SEPARATOR . $file);
 		if (
@@ -123,7 +125,7 @@ try {
 		) {
 			$fs->remove($path);
 		}
-	}	
+	}
 	print('OK<br>');
 	
 	print('Removing old files... ');

@@ -19,13 +19,18 @@ class Script extends HtmlTextModel {
 			  "database_ip",
 			  "database_name",
 			  "database_table",
-			  "description" => ['type' => 'text']
+			  "description" => ['type' => 'text'],
+			  "updated" => ['type' => 'date']
         ]);
         
         $this->getField('id')->neverSave = true;
 		
 		$this->hasOne('ScriptIp', ['model' => new PrimaryIp($this->getPersistence()), 'ourField' => 'script_ip', 'theirField' => 'ip']);
 		$this->hasOne('DatabaseIp', ['model' => new PrimaryIp($this->getPersistence()), 'ourField' => 'database_ip', 'theirField' => 'ip']);
+        
+		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_SAVE, function (\Atk4\Data\Model $m) {
+			$m->set('updated', new DateTime());
+		});
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
 			$script_path = $this->get('script_path');

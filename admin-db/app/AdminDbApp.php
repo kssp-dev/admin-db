@@ -15,6 +15,11 @@ class AdminDbApp extends \Atk4\Ui\App {
 		}
         
         $this->db = \Atk4\Data\Persistence::connect($db_dsn, $db_user, $db_psw);
+        
+        $this->uiPersistence = new Atk4\Ui\Persistence\Ui();
+		$this->uiPersistence->dateFormat = 'Y-m-d';
+		
+		//error_log(print_r("uiPersistence " . print_r($this->uiPersistence, true), true));
        
         $this->initLayout([\Atk4\Ui\Layout\Maestro::class]);
 		
