@@ -115,6 +115,15 @@ try {
 	if (!$source_dir) {
 		throw new Exception('Site root not found in the update archive');
 	}
+	
+	foreach(scandir($source_dir) as $file){
+		$path = realpath($source_dir . DIRECTORY_SEPARATOR . $file);
+		if (
+			preg_match('/^\.git/', $file) == 1
+		) {
+			$fs->remove($path);
+		}
+	}	
 	print('OK<br>');
 	
 	print('Removing old files... ');

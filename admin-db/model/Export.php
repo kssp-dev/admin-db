@@ -16,6 +16,7 @@ class Export extends EmptyNullModel {
 			"header" => ['type' => 'text'],
 			"row" => ['type' => 'text'],
 			"footer" => ['type' => 'text'],
+			"detales" => ['type' => 'text'],
 			"link" => ['type' => 'text']
         ]);
 		
