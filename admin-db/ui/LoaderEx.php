@@ -45,7 +45,9 @@ class LoaderEx extends Atk4\Ui\Loader {
 		}
     }
 
-	function addRedirectButton($app, $uri) {
+	function addRedirectButton($uri) {
+		global $app;
+		
 		Atk4\Ui\Button::addTo($this, [
 			is_array($uri) ? $uri[0] : 'Redirect'
 			,'icon' => is_array($uri) ? $uri['icon'] : 'sign in alternate'
@@ -56,18 +58,20 @@ class LoaderEx extends Atk4\Ui\Loader {
 			));
 	}
 
-	function addReloadButton($app, $uri) {
-		$this->addRedirectButton($app, [
+	function addReloadButton($uri = null) {
+		global $app_uri;
+		
+		$this->addRedirectButton([
 			'Reload site'
 			, 'icon' => 'sync'
-			, 'uri' => $uri
+			, 'uri' => isset($uri) ? $uri : $app_uri . '..'
 		]);
 	}
 
-	function addCloseButton($app) {
-		global $tab_uri;
+	function addCloseButton() {
+		global  $tab_uri;
 		
-		$this->addRedirectButton($app, [
+		$this->addRedirectButton([
 			'Close'
 			, 'icon' => 'times'
 			, 'uri' => $tab_uri

@@ -2,13 +2,6 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 
 
-DROP TABLE IF EXISTS "public"."scripts";
-DROP VIEW IF EXISTS "public"."primary_ip";
-DROP TABLE IF EXISTS "public"."ip";
-
-DROP TABLE IF EXISTS "public"."export";
-
-
 -- IP address may be primary or secondary depending on primary_ip field is NULL or not.
 -- Primary ip is a main ip of a network interface, serving to link any services (primary_ip is NULL).
 -- Secondary ip is another ip of the network inferface, legacy or test or other purpose configured.
@@ -63,6 +56,6 @@ CREATE TABLE IF NOT EXISTS "public"."export" (
   CONSTRAINT "export_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "export_from_to_key" ON "public"."export" ("from", "to");
-INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('scripts', 'wiki', 'wikipedia w');
-INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('ip', 'wiki', 'wikipedia w');
+INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('scripts', 'wiki', 'wikipedia w') ON CONFLICT DO NOTHING;
+INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('ip', 'wiki', 'wikipedia w') ON CONFLICT DO NOTHING;
 

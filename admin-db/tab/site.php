@@ -14,7 +14,7 @@ Atk4\Ui\Button::addTo($app, [
 	'click',
 	new ModalLoader('Updating the site',
 		function (LoaderEx $p) {
-			global $app, $app_uri, $app_dir;
+			global $app, $app_dir;
 			
 			$output = [];
 			$code = 0;
@@ -27,7 +27,7 @@ Atk4\Ui\Button::addTo($app, [
 				, $code == 0 ? 'success' : 'error'
 			);
 			
-			$p->addReloadButton($app, $app_uri . '..');
+			$p->addReloadButton();
 		}
 	)
 );
