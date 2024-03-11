@@ -7,6 +7,8 @@ require_once __DIR__ . '/../app.php';
 $model = new Script($app->db);
 $model->setOrder('updated', 'asc');
 
+$crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
+
 $crud_options = [
 	[
 		'_crud' => [
@@ -52,7 +54,9 @@ $crud_options = [
 	]
 	, 'menuActions' => []
 ];
-				
+
+// Export
+
 $export_model = new Export($app->db);
 $export_model->addCondition('from', 'scripts');
 
@@ -66,7 +70,6 @@ foreach ($export_model as $id => $entity) {
 	];
 }
 
-$crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 $crud->setModel($model, $crud_options);
 
 ?>
