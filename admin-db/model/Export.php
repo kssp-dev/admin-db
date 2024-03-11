@@ -27,7 +27,7 @@ class Export extends EmptyNullModel {
 				if ($field->type == 'text' && !empty($this->get($name))) {
 					$m->set($name, str_replace(
 						["\n", "\r", "\t", "\v", "\e", "\f"]
-						, ['\n', '\r', '\t', '\v', '\e', '\f']
+						, ['{{\n}}', '{{\r}}', '{{\t}}', '{{\v}}', '{{\e}}', '{{\f}}']
 						, $this->get($name)
 					));
 				}

@@ -15,7 +15,7 @@ class ModalExporter extends ModalLoader {
 				foreach ($export_entity->getFields() as $name => $field) {
 					if ($field->type == 'text') {
 						$templates[$name] = str_replace(
-							['\n', '\r', '\t', '\v', '\e', '\f']
+							['{{\n}}', '{{\r}}', '{{\t}}', '{{\v}}', '{{\e}}', '{{\f}}']
 							, ["\n", "\r", "\t", "\v", "\e", "\f"]
 							, $export_entity->get($name)
 						);
