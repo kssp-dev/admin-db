@@ -1,5 +1,7 @@
 <?php
 
+require_once 'HtmlTextModel.php';
+
 class Script extends HtmlTextModel {
     public $table = 'scripts';
 

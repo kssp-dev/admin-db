@@ -9,7 +9,7 @@ class LoaderEx extends Atk4\Ui\Loader {
 			'ui' => 'fluid'
 			, 'readOnly' => true
 			, 'rows' => 10
-		]])->set($output);
+		]])->set(is_array($output) ? implode($output) : strval($output));
 		
 		Atk4\Ui\View::addTo($this, ['ui' => 'hidden divider']);
     }

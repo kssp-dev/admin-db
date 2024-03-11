@@ -56,10 +56,13 @@ $crud_options = [
 $export_model = new Export($app->db);
 $export_model->addCondition('from', 'scripts');
 
+$from_model = new Script($app->db);
+$from_model->setOrder('name', 'asc');
+
 foreach ($export_model as $id => $entity) {
 	$crud_options['menuActions']['Export to ' . $entity->get('to')] = [
 		'icon' => empty($entity->get('icon')) ? null : $entity->get('icon'),
-		'action' => new ModalExporter(new Script($app->db), $entity)
+		'action' => new ModalExporter($from_model, $entity)
 	];
 }
 

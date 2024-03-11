@@ -1,5 +1,7 @@
 <?php
 
+require_once 'EmptyNullModel.php';
+
 class Ip extends EmptyNullModel {
     public $table = 'ip';
 
