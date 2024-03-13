@@ -294,11 +294,11 @@ class MasterCrud extends View
                         'click',
                         new JsModal($key, $this->add([VirtualPage::class])
 							->set(
-								static function ($p) use ($key, $crud)
+								static function ($p) use ($action, $crud)
 								{
 									// TODO: this does ont work within a tab :(
 									$p->add(
-										new MethodExecutor($crud->model, $key)
+										new MethodExecutor($crud->model, $action)
 									);
 								}
 							)
@@ -331,32 +331,71 @@ class MasterCrud extends View
             is_array($ca) || $ca = [$ca];
 
             foreach ($ca as $key => $action) {
+				$icon = null;
+				$caption = null;
                 if (is_numeric($key)) {
                     $key = $action;
                 }
+                if (is_array($action)) {
+					if (!empty($action[0])) {
+						$key = $action[0];
+					}
+					if (!empty($action['icon'])) {
+						$icon = $action['icon'];
+					}
+					if (!empty($action['caption'])) {
+						$caption = $action['caption'];
+					}
+					if (isset($action['action'])) {
+						$action = $action['action'];
+					}
+                }
 
                 if (is_string($action)) {
-                    $label = ['icon' => $action];
+                    $crud->addModalAction([$caption, 'icon' => $icon], $key,
+						static function ($p, $id) use ($action, $crud) {
+							$p->add(new MethodExecutor($crud->model->load($id), $action));
+						}
+                    );
                 }
 
-                is_array($action) || $action = [$action];
-
-                if (isset($action['icon'])) {
-                    $label = ['icon' => $action['icon']];
-                    unset($action['icon']);
+                if ($action instanceof \Closure) {
+                    $crud->addModalAction([$caption, 'icon' => $icon], $key,
+						static function ($p, $id) use ($action, $crud) {
+							$action($p, $crud->model->load($id));
+						}
+                    );
                 }
 
-                if (isset($action[0]) && $action[0] instanceof \Closure) {
-                    $crud->addModalAction($label ?: $key, $key, function ($p, $id) use ($action, $crud) {
-                        $this->issetApp(); // prevent PHP CS Fixer to make this anonymous function static
-
-                        call_user_func($action[0], $p, $crud->model->load($id));
-                    });
-                } else {
-                    $crud->addModalAction($label ?: $key, $key, static function ($p, $id) use ($action, $key, $crud) {
-                        $p->add(new MethodExecutor($crud->model->load($id), $key, $action));
-                    });
+                if ($action instanceof JsModal) {
+                    $crud->addActionButton(
+						[$caption, 'icon' => $icon]
+						, $action
+                    );
                 }
+
+                //if (is_string($action)) {
+                //    $label = ['icon' => $action];
+                //}
+
+                //is_array($action) || $action = [$action];
+
+                //if (isset($action['icon'])) {
+                //    $label = ['icon' => $action['icon']];
+                //    unset($action['icon']);
+                //}
+
+                //if (isset($action[0]) && $action[0] instanceof \Closure) {
+                //    $crud->addModalAction($label ?: $key, $key, function ($p, $id) use ($action, $crud) {
+                //        $this->issetApp(); // prevent PHP CS Fixer to make this anonymous function static
+
+                //        call_user_func($action[0], $p, $crud->model->load($id));
+                //    });
+                //} else {
+                //    $crud->addModalAction($label ?: $key, $key, static function ($p, $id) use ($action, $key, $crud) {
+                //        $p->add(new MethodExecutor($crud->model->load($id), $key, $action));
+                //    });
+                //}
             }
         }
     }

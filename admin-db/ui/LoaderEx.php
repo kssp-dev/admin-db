@@ -2,6 +2,10 @@
 
 class LoaderEx extends Atk4\Ui\Loader {
 	
+	function addHeader($text, $size) {
+		Atk4\Ui\Header::addTo($this, [$text, 'size' => $size]);
+    }
+	
 	function addTextarea($output) {
 		$segment = Atk4\Ui\View::addTo($this, ['ui' => 'form']);
 		

@@ -27,7 +27,7 @@ foreach ($export_model as $id => $entity) {
 		'Export to ' . $entity->get('to')
 		, 'icon' => empty($entity->get('icon')) ? null : $entity->get('icon')
 	])->on('click'
-		,  new ModalExporter($from_model, $entity)
+		, new ModalExporter($from_model, $entity)
 	);
 }
 
