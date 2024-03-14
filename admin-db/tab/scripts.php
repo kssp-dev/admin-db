@@ -84,6 +84,4 @@ foreach ($export_model as $id => $entity) {
 
 $crud->setModel($model, $crud_options);
 
-//error_log(print_r("getUserAction " . print_r($model->getUserAction('delete'), true), true));
-
 ?>
