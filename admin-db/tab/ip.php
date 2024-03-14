@@ -7,6 +7,8 @@ require_once __DIR__ . '/../app.php';
 $model = new Ip($app->db);
 $model->setOrder('ip', 'asc');
 
+$model->getUserAction('delete')->confirmation = true;
+
 $crud = \Atk4\Ui\Crud::addTo($app, ['ipp' => 14]);
 $crud->editFields = ['primary_ip'];
 

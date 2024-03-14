@@ -7,6 +7,8 @@ require_once __DIR__ . '/../app.php';
 $model = new Script($app->db);
 $model->setOrder('updated', 'asc');
 
+$model->getUserAction('delete')->confirmation = true;
+
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 
 $crud_options = [
@@ -81,5 +83,7 @@ foreach ($export_model as $id => $entity) {
 }
 
 $crud->setModel($model, $crud_options);
+
+//error_log(print_r("getUserAction " . print_r($model->getUserAction('delete'), true), true));
 
 ?>
