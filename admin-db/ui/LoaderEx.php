@@ -12,7 +12,7 @@ class LoaderEx extends Atk4\Ui\Loader {
 		Atk4\Ui\Form\Control\Textarea::addTo($segment, [[
 			'ui' => 'fluid'
 			, 'readOnly' => true
-			, 'rows' => 10
+			, 'rows' => 14
 		]])->set(is_array($output) ? implode($output) : strval($output));
 		
 		Atk4\Ui\View::addTo($this, ['ui' => 'hidden divider']);

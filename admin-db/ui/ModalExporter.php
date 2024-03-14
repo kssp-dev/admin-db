@@ -40,10 +40,10 @@ class ModalExporter extends ModalLoader {
 				
 				$output = [];
 				
-				if ($from_model->isEntity()) {		// Detales export
+				if ($from_model->isEntity()) {		// Details export
 					
-					if (!empty($templates['detales'])) {
-						$str = $templates['detales'];
+					if (!empty($templates['details'])) {
+						$str = $templates['details'];
 						
 						foreach ($replace as $name => $func) {
 							$str = str_replace('{{' . $name . '}}', $func($from_model, $name), $str);

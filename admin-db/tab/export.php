@@ -12,7 +12,7 @@ $crud->setModel($model, [
 	[
 		'_crud' => [
 			'displayFields' => ['from', 'to']
-			, 'editFields' => ['icon', 'header', 'row', 'footer', 'detales', 'link']
+			, 'editFields' => ['icon', 'header', 'row', 'footer', 'details', 'link']
 			, 'ipp' => 14
 		]
 	]

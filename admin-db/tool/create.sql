@@ -59,3 +59,5 @@ CREATE UNIQUE INDEX IF NOT EXISTS "export_from_to_key" ON "public"."export" ("fr
 INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('scripts', 'wiki', 'wikipedia w') ON CONFLICT DO NOTHING;
 INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('ip', 'wiki', 'wikipedia w') ON CONFLICT DO NOTHING;
 
+ALTER TABLE "public"."export" RENAME COLUMN "detales" TO "details";
+

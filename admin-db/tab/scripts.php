@@ -72,7 +72,7 @@ foreach ($export_model as $id => $entity) {
 		'action' => new ModalExporter($from_model, $entity)
 	];
 	
-	if (!empty($entity->get('detales'))) {
+	if (!empty($entity->get('details'))) {
 		$crud_options['columnActions']['Export to ' . $entity->get('to')] = [
 			'icon' => empty($entity->get('icon')) ? null : $entity->get('icon'),
 			'action' => function ($p, $from_entity) use ($entity) {
