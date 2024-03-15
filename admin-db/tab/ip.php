@@ -25,9 +25,11 @@ $from_model = new PrimaryIp($app->db);
 $from_model->setOrder('ip', 'asc');
 
 foreach ($export_model as $id => $entity) {
+	$icon = empty($entity->get('icon')) ? null : $entity->get('icon');
+	
 	$crud->menu->addItem([
 		'Export to ' . $entity->get('to')
-		, 'icon' => empty($entity->get('icon')) ? null : $entity->get('icon')
+		, 'icon' => $icon
 	])->on('click'
 		, new ModalExporter($from_model, $entity)
 	);

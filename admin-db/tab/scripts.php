@@ -67,14 +67,17 @@ $from_model = new Script($app->db);
 $from_model->setOrder('name', 'asc');
 
 foreach ($export_model as $id => $entity) {
+	$icon = empty($entity->get('icon')) ? null : $entity->get('icon');
+	
 	$crud_options['menuActions']['Export to ' . $entity->get('to')] = [
-		'icon' => empty($entity->get('icon')) ? null : $entity->get('icon'),
+		'icon' => $icon,
 		'action' => new ModalExporter($from_model, $entity)
 	];
 	
 	if (!empty($entity->get('details'))) {
 		$crud_options['columnActions']['Export to ' . $entity->get('to')] = [
-			'icon' => empty($entity->get('icon')) ? null : $entity->get('icon'),
+			'icon' => $icon,
+			'caption' => isset($icon) ? null : $entity->get('to'),
 			'action' => function ($p, $from_entity) use ($entity) {
 				new ModalExporter($from_entity, $entity, $p);
 			}
