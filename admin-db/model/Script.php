@@ -72,18 +72,16 @@ class Script extends HtmlTextModel {
 				return ['database_ip' => 'There is no primary ip address ' . $this->get('database_ip') . ' in the ip addresses table - add it first'];
 			}
 			
-			$script_model = new ScriptNameModel($app->db);
-			$script_model = $script_model->tryLoad($this->get('name'));
-			
-			if ($script_model != null && $script_model->get('id') != $this->get('id')) {
-				return ['name' => 'Script of name "' . $this->get('name') . '" already exists in the table'];
+			$m = clone $this->getModel();
+			$m->addCondition('name', $this->get('name'));
+			if ($m->tryLoadAny() != null) {
+				return ['name' => 'Script of the name already exists'];
 			}
 			
-			$script_model = new ScriptFileModel($app->db);
-			$script_model = $script_model->tryLoad($this->get('script_file'));
-			
-			if ($script_model != null && $script_model->get('id') != $this->get('id')) {
-				return ['script_file' => 'Script file "' . $this->get('script_file') . '" already exists in the table'];
+			$m = clone $this->getModel();
+			$m->addCondition('script_file', $this->get('script_file'));
+			if ($m->tryLoadAny() != null) {
+				return ['script_file' => 'Script file already exists'];
 			}
 		});		
     }

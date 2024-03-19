@@ -44,9 +44,21 @@ class AdminDbApp extends \Atk4\Ui\App {
 			, 'icon'=>'chart bar'
 		]);
 			$this->layout->addMenuItem([
+				'Alerts'
+				, 'icon'=>'bell'
+			], [$app_uri . 'tab/monitoring-alerts'], $menu);
+			$this->layout->addMenuItem([
+				'Targets'
+				, 'icon'=>'crosshairs'
+			], [$app_uri . 'tab/monitoring-targets'], $menu);
+			$this->layout->addMenuItem([
 				'Scripts'
 				, 'icon'=>'file medical alternate'
-			], [$app_uri . 'tab/scripts'], $menu);
+			], [$app_uri . 'tab/monitoring-scripts'], $menu);
+			$this->layout->addMenuItem([
+				'Servers'
+				, 'icon'=>'server'
+			], [$app_uri . 'tab/monitoring-servers'], $menu);
 		
         $menu = $this->layout->addMenuGroup([
 			'Network'
@@ -56,6 +68,10 @@ class AdminDbApp extends \Atk4\Ui\App {
 				'IP Addresses'
 				, 'icon'=>'ellipsis horizontal'
 			], [$app_uri . 'tab/ip'], $menu);
+			$this->layout->addMenuItem([
+				'Scripts'
+				, 'icon'=>'file medical alternate'
+			], [$app_uri . 'tab/scripts'], $menu);
         
         $menu = $this->layout->addMenuGroup([
 			'Administration'

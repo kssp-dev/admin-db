@@ -117,7 +117,7 @@ class MasterCrud extends View
 
         $defs = $this->traverseModel($this->path, $defs ?? []);
 
-        $arg_name = $this->model->table . '_id';
+        $arg_name = str_replace('.', '_', $this->model->table) . '_id';
         $arg_val = $this->getApp()->stickyGet($arg_name);
         if ($arg_val && ($entity = $this->model->tryLoad($arg_val))) {
             // initialize Tabs
@@ -159,7 +159,7 @@ class MasterCrud extends View
         }
 
         $this->tabs = $view->add($this->getTabsSeed($defs));
-        $this->getApp()->stickyGet($this->model->table . '_id');
+        $this->getApp()->stickyGet(str_replace('.', '_', $this->model->table) . '_id');
 
         $this->crumb->addCrumb($this->getTitle($this->model), $this->tabs->url());
 
@@ -190,10 +190,10 @@ class MasterCrud extends View
                 if (isset($sub_crud->table->columns[$m->titleField])) {
                     // DEV-Note
                     // This cause issue since https://github.com/atk4/ui/pull/1397 cause it will always include __atk_callback argument.
-                    // $sub_crud->addDecorator($m->titleField, [Table\Column\Link::class, [$t => false, 'path' => $this->getPath($ref)], [$m->table . '_id' => 'id']]);
+                    // $sub_crud->addDecorator($m->titleField, [Table\Column\Link::class, [$t => false, 'path' => $this->getPath($ref)], [str_replace('.', '_', $m->table) . '_id' => 'id']]);
 
                     // Creating url template in order to produce proper url.
-                    $sub_crud->addDecorator($m->titleField, [Table\Column\Link::class, 'url' => $this->getApp()->url(['path' => $this->getPath($ref)]) . '&' . $m->table . '_id={$id}']);
+                    $sub_crud->addDecorator($m->titleField, [Table\Column\Link::class, 'url' => $this->getApp()->url(['path' => $this->getPath($ref)]) . '&' . str_replace('.', '_', $m->table) . '_id={$id}']);
                 }
 
                 $this->addActions($sub_crud, $subdef);
@@ -217,7 +217,7 @@ class MasterCrud extends View
         $crud->setModel($this->model);
 
         if (isset($crud->table->columns[$this->model->titleField])) {
-            $crud->addDecorator($this->model->titleField, [Table\Column\Link::class, [], [$this->model->table . '_id' => 'id']]);
+            $crud->addDecorator($this->model->titleField, [Table\Column\Link::class, [], [str_replace('.', '_', $this->model->table) . '_id' => 'id']]);
         }
 
         $this->addActions($crud, $defs);
@@ -453,7 +453,7 @@ class MasterCrud extends View
             $defs = $defs[$p];
 
             // argument of a current model should be passed if we are traversing
-            $arg_name = $m->table . '_id';
+            $arg_name = str_replace('.', '_', $m->table) . '_id';
             $arg_val = $this->getApp()->stickyGet($arg_name);
 
             if ($arg_val === null) {

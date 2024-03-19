@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS "public"."scripts" (
   "database_table" VARCHAR(80) NULL,
   "logic" TEXT NULL,
   "description" TEXT NULL,
+  "updated" DATE NOT NULL DEFAULT NOW(),
   CONSTRAINT "scripts_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "fk_script_ip" FOREIGN KEY("script_ip") REFERENCES ip("ip"),
   CONSTRAINT "fk_database_ip" FOREIGN KEY("database_ip") REFERENCES ip("ip")
@@ -40,25 +41,90 @@ CREATE INDEX IF NOT EXISTS "scripts_timer_file_idx" ON "public"."scripts" ("time
 CREATE INDEX IF NOT EXISTS "scripts_database_name_idx" ON "public"."scripts" ("database_name");
 CREATE INDEX IF NOT EXISTS "database_table" ON "public"."scripts" ("database_table");
 
-ALTER TABLE "public"."scripts" ADD COLUMN IF NOT EXISTS "updated" date NOT NULL DEFAULT NOW();
+--- EXPORT ---
 
-
-CREATE TABLE IF NOT EXISTS "public"."export" ( 
-  "id" SERIAL,
+CREATE TABLE IF NOT EXISTS "public"."export" (
+  "id" SERIAL PRIMARY KEY,
   "from" VARCHAR(15) NOT NULL,
   "to" VARCHAR(15) NOT NULL,
-  "icon" VARCHAR(15) NULL,
+  "icon" VARCHAR(47) NULL,
   "header" TEXT NULL,
   "row" TEXT NULL,
   "footer" TEXT NULL,
-  "detales" TEXT NULL,
-  "link" TEXT NULL,
-  CONSTRAINT "export_pkey" PRIMARY KEY ("id")
+  "details" TEXT NULL,
+  "link" TEXT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "export_from_to_key" ON "public"."export" ("from", "to");
 INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('scripts', 'wiki', 'wikipedia w') ON CONFLICT DO NOTHING;
 INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('ip', 'wiki', 'wikipedia w') ON CONFLICT DO NOTHING;
 
-ALTER TABLE "public"."export" RENAME COLUMN "detales" TO "details";
-ALTER TABLE "public"."export" ALTER COLUMN "icon" SET DATA TYPE VARCHAR(47);
+--- MONITORING ---
+
+CREATE SCHEMA IF NOT EXISTS "monitoring";
+
+
+CREATE TABLE IF NOT EXISTS "monitoring"."servers" (
+  "id" SERIAL PRIMARY KEY,
+  "run_count" INTEGER NOT NULL DEFAULT 0,
+  "name" VARCHAR(31) NOT NULL UNIQUE
+);
+
+
+CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
+  "id" SERIAL PRIMARY KEY,
+  "server_id" INTEGER NOT NULL REFERENCES "monitoring"."servers",
+  "text_id" VARCHAR(15) NOT NULL UNIQUE CHECK ("text_id" ~ '^[^@\s]+$'),
+  "name" VARCHAR(31) NOT NULL UNIQUE,
+  "script" TEXT NOT NULL,
+  "updated" DATE NOT NULL DEFAULT NOW()
+);
+
+
+CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
+  "id" SERIAL PRIMARY KEY,
+  "script_id" INTEGER NOT NULL REFERENCES "monitoring"."scripts",
+  "text_id" VARCHAR(15) NOT NULL CHECK ("text_id" ~ '^[^@\s]+$'),
+  "name" VARCHAR(31) NOT NULL,
+  "period" SMALLINT NOT NULL DEFAULT 5 CHECK ("period" > 0),
+  "target" VARCHAR(127) NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_text_id_key" ON "monitoring"."targets" ("script_id", "text_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_name_key" ON "monitoring"."targets" ("script_id", "name");
+
+
+CREATE TABLE IF NOT EXISTS "monitoring"."alerts" (
+  "id" SERIAL PRIMARY KEY,
+  "script_id" INTEGER NOT NULL REFERENCES "monitoring"."scripts",
+  "code" SMALLINT NOT NULL,
+  "name" VARCHAR(31) NOT NULL,
+  "description" TEXT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "alerts_script_id_code_key" ON "monitoring"."alerts" ("script_id", "code");
+CREATE UNIQUE INDEX IF NOT EXISTS "alerts_script_id_name_key" ON "monitoring"."targets" ("script_id", "name");
+
+
+CREATE TABLE IF NOT EXISTS "monitoring"."log" (
+  "id" SERIAL PRIMARY KEY,
+  "target_id" INTEGER NOT NULL REFERENCES "monitoring"."targets",
+  "time" TIMESTAMP NOT NULL DEFAULT NOW(),
+  "code" SMALLINT NOT NULL,
+  "output" TEXT NULL
+);
+CREATE INDEX IF NOT EXISTS "log_time_idx" ON "monitoring"."log" ("time");
+
+CREATE TABLE IF NOT EXISTS "monitoring"."series" (
+  "id" SERIAL PRIMARY KEY,
+  "target_id" INTEGER NOT NULL REFERENCES "monitoring"."targets",
+  "time" TIMESTAMP NOT NULL DEFAULT NOW(),
+  "text_id" VARCHAR(31) NOT NULL CHECK ("text_id" ~ '^[^@\s]+@[^@\s]+$'),
+  "metric" VARCHAR(127) NULL,
+  "is_alert" BOOLEAN NOT NULL,
+  "alert_name" VARCHAR(93) NULL,
+  "alert_description" TEXT NULL
+);
+CREATE INDEX IF NOT EXISTS "series_time_idx" ON "monitoring"."series" ("time");
+CREATE INDEX IF NOT EXISTS "series_text_id_idx" ON "monitoring"."series" ("text_id");
+CREATE INDEX IF NOT EXISTS "series_metric_idx" ON "monitoring"."series" ("metric");
+
+--- END ---
 
