@@ -331,28 +331,27 @@ class MasterCrud extends View
             is_array($ca) || $ca = [$ca];
 
             foreach ($ca as $key => $action) {
-				$icon = null;
-				$caption = null;
+				$seed = [];
                 if (is_numeric($key)) {
                     $key = $action;
                 }
                 if (is_array($action)) {
+					$seed = $action;
 					if (!empty($action[0])) {
 						$key = $action[0];
 					}
-					if (!empty($action['icon'])) {
-						$icon = $action['icon'];
-					}
 					if (!empty($action['caption'])) {
-						$caption = $action['caption'];
+						$seed[0] = $action['caption'];
+						$seed['caption'] = null;
 					}
 					if (isset($action['action'])) {
 						$action = $action['action'];
+						$seed['action'] = null;
 					}
                 }
 
                 if (is_string($action)) {
-                    $crud->addModalAction([$caption, 'icon' => $icon], $key,
+                    $crud->addModalAction($seed, $key,
 						static function ($p, $id) use ($action, $crud) {
 							$p->add(new MethodExecutor($crud->model->load($id), $action));
 						}
@@ -360,7 +359,7 @@ class MasterCrud extends View
                 }
 
                 if ($action instanceof \Closure) {
-                    $crud->addModalAction([$caption, 'icon' => $icon], $key,
+                    $crud->addModalAction($seed, $key,
 						static function ($p, $id) use ($action, $crud) {
 							$action($p, $crud->model->load($id));
 						}
@@ -369,7 +368,7 @@ class MasterCrud extends View
 
                 if ($action instanceof JsModal) {
                     $crud->addActionButton(
-						[$caption, 'icon' => $icon]
+						$seed
 						, $action
                     );
                 }

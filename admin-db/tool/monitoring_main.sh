@@ -4,35 +4,45 @@ script_dir=$(realpath "$0")
 script_dir=$(dirname "$script_dir")
 
 # database connection
-sql_client='/usr/bin/psql'
-db_host='10.10.4.185'
-db_port='5432'
-db_user=''
-db_password=''
-db_name='admindb'
+sql_client='psql'
+
 db_table_servers='monitoring.servers'
 db_table_scripts='monitoring.scripts'
 db_table_targets='monitoring.targets'
-db_table_alerts='monitoring.alerts'
+db_table_types='monitoring.types'
 db_table_log='monitoring.log'
 db_table_series='monitoring.series'
 
-export PGPASSWORD="$db_password"
+if [ -z "$ADMIN_DB_HOST" ]; then export ADMIN_DB_HOST="$1"; fi
+if [ -z "$ADMIN_DB_PORT" ]; then export ADMIN_DB_PORT="$2"; fi
+if [ -z "$ADMIN_DB_NAME" ]; then export ADMIN_DB_NAME="$3"; fi
+if [ -z "$ADMIN_DB_USER" ]; then export ADMIN_DB_USER="$4"; fi
+if [ -z "$ADMIN_DB_PSW" ]; then export ADMIN_DB_PSW="$5"; fi
 
-sql_cmd="$sql_client -h $db_host -U $db_user -p $db_port -d $db_name -t -c"
+if [ -z "$ADMIN_DB_HOST" ] || [ -z "$ADMIN_DB_PORT" ] || [ -z "$ADMIN_DB_NAME" ] || [ -z "$ADMIN_DB_USER" ] || [ -z "$ADMIN_DB_PSW" ]
+then
+	logger -s "MONITORING: Database connection parameters not found"
+	exit 222
+fi
 
+export PGPASSWORD="$ADMIN_DB_PSW"
+
+sql_cmd="$sql_client -h $ADMIN_DB_HOST -p $ADMIN_DB_PORT -d $ADMIN_DB_NAME -U $ADMIN_DB_USER -t -c"
+
+#env
 
 # ------------------------------
 # Server stage
 # ------------------------------
 
-if [ "$server_id" == "" ]
+if [ -z "$server_id" ] && [ -z "$script_id" ]
 then
 	echo === STAGE 1 ===
 	
 	echo --- Clean up log ---
 	
 	sql="DELETE FROM $db_table_log WHERE time < NOW() - INTERVAL '7 days'"
+	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	if [ $code != 0 ]; then exit $code; fi
@@ -40,17 +50,19 @@ then
 	echo --- Clean up series ---
 	
 	sql="DELETE FROM $db_table_series WHERE time < NOW() - INTERVAL '7 days'"
+	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	if [ $code != 0 ]; then exit $code; fi
 	
-	echo --- Get server id ---
+	echo --- Get server id of $(hostname) ---
 	
-	sql="SELECT id, run_count FROM $db_table_servers WHERE name = '$(hostname)'"
+	sql="SELECT id, run_count FROM $db_table_servers WHERE name = '$(hostname)' AND enabled"
+	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	sql="${sql#"${sql%%[![:space:]]*}"}"
-	if [ "$sql" == "" ]; then exit $code; fi
+	if [ -z "$sql" ]; then exit $code; fi
 	
 	export server_id="${sql%% *}"
 	run_count="${sql##* }"
@@ -60,15 +72,16 @@ then
 	echo --- Update run count ---
 	
 	sql="UPDATE $db_table_servers SET run_count = $run_count WHERE id = $server_id"
+	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	if [ $code != 0 ]; then exit $code; fi
 	
 	export run_count=$run_count
 	
-	echo --- Start stage 2 of server $server_id ---
+	echo --- Start scripts of server $server_id ---
 	
-	. "$0" &
+	. "$0"
 	
 	exit
 fi
@@ -78,27 +91,28 @@ fi
 # Scripts stage
 # ------------------------------
 
-if [ "$server_id" != "" ] && [ "$run_count" != "" ] && [ "$script_id" == "" ]
+if [ -n "$server_id" ] && [ -n "$run_count" ] && [ -z "$script_id" ]
 then
 	echo === STAGE 2 ===
 	
 	echo --- Get script ids ---
 	
-	sql="SELECT id FROM $db_table_scripts WHERE server_id = $server_id"
+	sql="SELECT id FROM $db_table_scripts WHERE server_id = $server_id AND enabled"
+	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
+	if [ $code != 0 ]; then exit $code; fi
 	sql="${sql#"${sql%%[![:space:]]*}"}"
-	if [ "$sql" == "" ]; then exit $code; fi
 	
 	for id in $sql
 	do
-		echo --- Start script $id ---
+		echo --- Start targets of script $id ---
 	
 		export script_id=$id
-		. "$0" &
+		. "$0"
 	done
 	
-	exit
+	return
 fi
 
 
@@ -106,25 +120,28 @@ fi
 # Targets stage
 # ------------------------------
 
-if [ "$run_count" != "" ] && [ "$script_id" != "" ] && [ "$target_ids" == "" ]
+if [ -n "$run_count" ] && [ -n "$script_id" ] && [ -z "$target_ids" ]
 then
 	echo === STAGE 3 ===
 	
 	echo --- Get target ids ---
 	
-	sql="SELECT id, period FROM $db_table_targets WHERE script_id = $script_id"
+	sql="SELECT id, period FROM $db_table_targets WHERE script_id = $script_id AND enabled"
+	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
+	if [ $code != 0 ]; then exit $code; fi
 	sql="${sql#"${sql%%[![:space:]]*}"}"
 	sql="${sql// |/}"
-	if [ "$sql" == "" ]; then exit $code; fi
 	
 	targets=""
 	id=""
 	
+	echo --- Period filter ---
+	
 	for period in $sql
 	do
-		if [ "$id" == "" ]
+		if [ -z "$id" ]
 		then
 			id=$period
 		else
@@ -139,12 +156,16 @@ then
 		fi
 	done
 	
-	if [ "$targets" == "" ]; then exit; fi
+	if [ -n "$targets" ]
+	then
+		export target_ids="${targets#"${targets%%[![:space:]]*}"}"
+		
+		echo --- Start script $script_id on targets $target_ids ---
 	
-	export target_ids="${targets#"${targets%%[![:space:]]*}"}"
-	. "$0" &
+		. "$0" &
+	fi
 	
-	exit
+	return
 fi
 
 
@@ -152,32 +173,37 @@ fi
 # Script stage
 # ------------------------------
 
-if [ "$script_id" != "" ] && [ "$target_ids" != "" ] && [ "$target_id" == "" ]
+if [ -n "$script_id" ] && [ -n "$target_ids" ] && [ -z "$target_id" ]
 then
 	echo === STAGE 4 ===	
 	
-	temp=$(mktemp -d)
-	if [ ! -d "$temp" ]
+	export temp_dir=$(mktemp -d)
+	if [ ! -d "$temp_dir" ]
 	then
-		echo Temp directory creation error
+		logger -s "MONITORING: Can not create temp directory"
 		exit 201
 	fi
 	
-	export script_path="$temp/script"
+	echo --- Write script file ---
+	
+	export script_path="$temp_dir/script"
 	
 	sql="SELECT script FROM $db_table_scripts WHERE id = $script_id"
+	echo $sql
 	$sql_cmd "$sql" | sed -e 's/^\s//' -e 's/\s*+$//' > "$script_path"
 	
 	code=0
 	
 	if [ ! -r "$script_path" ]
 	then
-		echo Temp script creation error
+		logger -s "MONITORING: Can not write script file"
 		code=202
 	fi
 	
 	if [ $code == 0 ]
 	then
+		echo --- Write script runner ---
+	
 		runner_path="$script_path.sh"
 		
 		echo '#!/bin/bash
@@ -196,7 +222,7 @@ then
 			
 			echo php '"'$script_path'"' '"$1"' >> "$runner_path"
 		else
-			echo Script unknown format error
+			logger -s "MONITORING: Unknown script format $script_id"
 			code=203
 		fi
 		
@@ -204,21 +230,23 @@ then
 	fi
 	
 	if [ $code == 0 ]
-	then		
-		#cat "$runner_path"
-		
+	then
 		export runner_path="$runner_path"
 		
 		for id in $target_ids
-		do
+		do	
+			echo --- Start target $id ---
+	
 			export target_id=$id
 			. "$0"
 		done
 	fi
 	
-	if [ -d "$temp" ]
+	if [ -d "$temp_dir" ]
 	then
-		rm -r "$temp"
+		echo --- Remove temp directory ---
+		
+		rm -r "$temp_dir"
 	fi
 	
 	exit $code
@@ -229,94 +257,210 @@ fi
 # Target stage
 # ------------------------------
 
-if [ "$script_id" != "" ] && [ "$target_id" != "" ] && [ "$runner_path" != "" ]
+if [ -n "$script_id" ] && [ -n "$target_id" ] && [ -n "$runner_path" ]
 then
 	echo === STAGE 5 ===
 	
-	echo --- Target $target_id ---
+	echo --- Write data file ---
 	
-	sql="SELECT target FROM $db_table_targets WHERE id = $target_id"
-	sql=$($sql_cmd "$sql")
-	code=$?
-	sql="${sql#"${sql%%[![:space:]]*}"}"
-	if [ "$sql" == "" ]; then exit $code; fi
+	sql="SELECT script_data FROM $db_table_targets WHERE id = $target_id AND script_data IS NOT NULL"
+	echo $sql
+	$sql_cmd "$sql" | sed -e 's/^\s//' -e 's/\s*+$//' > "$temp_dir/data"
+	#cat "$temp_dir/data"
 	
-	echo --- Exec ---
+	echo --- Out path ---
 	
 	out_path="$runner_path.$target_id.out"
 	touch "$out_path"
 	
-	bash "$runner_path" "$sql" 2>&1 > "$out_path"
-	script_code=$?
-	script_out=$(cat "$out_path")
+	echo --- Target $target_id ---
+	
+	sql="SELECT target FROM $db_table_targets WHERE id = $target_id"
+	echo $sql
+	sql=$($sql_cmd "$sql")
+	code=$?
+	sql="${sql#"${sql%%[![:space:]]*}"}"
+	if [ -z "$sql" ]; then exit $code; fi
+	
+	
+	if [ -n "$MONITORING_USER" ]
+	then
+		echo --- Exec by user $MONITORING_USER ---
+	
+		sudo -u "$MONITORING_USER" bash "$runner_path" "$sql" 2>&1 > "$out_path"
+		script_code=$?
+	else
+		echo --- Exec by user $(whoami) ---
+	
+		bash "$runner_path" "$sql" 2>&1 > "$out_path"
+		script_code=$?
+	fi
 	
 	echo --- Write log ---
 		
-	sql="INSERT INTO $db_table_log (target_id, code, output) VALUES ($target_id, $code, '$(cat "$out_path")')"
+	sql="INSERT INTO $db_table_log (target_id, code, output) VALUES ($target_id, $script_code, '$(cat "$out_path")')"
+	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	if [ $code != 0 ]; then exit $code; fi
 	
-	echo --- Get text id ---
-	
-	sql="SELECT text_id FROM $db_table_scripts WHERE id = $script_id"
-	sql=$($sql_cmd "$sql")
-	code=$?
-	sql="${sql#"${sql%%[![:space:]]*}"}"
-	if [ "$sql" == "" ]; then exit $code; fi
-	
-	text_id="$sql"
-	
-	sql="SELECT text_id FROM $db_table_targets WHERE id = $target_id"
-	sql=$($sql_cmd "$sql")
-	code=$?
-	sql="${sql#"${sql%%[![:space:]]*}"}"
-	if [ "$sql" == "" ]; then exit $code; fi
-	
-	text_id="'$text_id@$sql'"
-	
-	echo --- Get metric ---
-	
-	metric="NULL"
-	
-	if [ -n "$(echo $script_out | sed -E -n '/METRIC#.+#METRIC/p')" ]
-	then
-		metric=$(echo $script_out | sed -e 's/^.*METRIC#//' -e 's/#METRIC.*$//')
-	fi
-	
-	echo --- Get alert ---
-	
-	is_alert="FALSE"
-	alert_name="NULL"
-	alert_description="NULL"
+	echo --- Script code $script_code ---
 	
 	if [ $script_code != 0 ]
 	then
-		is_alert="TRUE"
-		alert_name="'UNKNOWN ERROR $script_code'"
-	
-		sql="SELECT name, description FROM $db_table_alerts WHERE script_id = $script_id AND code = $script_code"
-		sql=$($sql_cmd "$sql")
-		code=$?
-		sql="${sql#"${sql%%[![:space:]]*}"}"
-		
-		if [ "$sql" != "" ]; then
-			alert_name="'$(echo $sql | sed -e 's/ |.*$//')'"
-			alert_description="'$(echo $sql | sed -e 's/^[^\|]*|\s*//' -e 's/\s*+\s|\s/\n/g')'"
-		fi
+		return
 	fi
 	
-	echo --- Add series row ---
+	echo --- Check metrics ---
+	
+	mapfile -t metrics < <( sed -n -E '/METRIC#.+#METRIC/p' "$out_path" | sed -e 's/.*METRIC#//' -e 's/#METRIC.*/#/' )
+	echo "${metrics[@]}"
+	
+	if [ ${#metrics[*]} == 0 ]
+	then
+		echo --- No metric found ---
 		
-	sql="INSERT INTO $db_table_series (target_id, text_id, metric, is_alert, alert_name, alert_description) VALUES ($target_id, $text_id, $metric, $is_alert, $alert_name, $alert_description)"
+		return
+	fi
+			
+	echo --- Get text id ---
+	
+	sql="SELECT text_id, name FROM $db_table_scripts WHERE id = $script_id"
+	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
-	if [ $code != 0 ]; then exit $code; fi
+	sql="${sql#"${sql%%[![:space:]]*}"}"
+	if [ -z "$sql" ]; then exit $code; fi
 	
+	text_id="${sql%% *}"
+	target_name="${sql##* | }"
+	
+	sql="SELECT text_id, name FROM $db_table_targets WHERE id = $target_id"
+	echo $sql
+	sql=$($sql_cmd "$sql")
+	code=$?
+	sql="${sql#"${sql%%[![:space:]]*}"}"
+	if [ -z "$sql" ]; then exit $code; fi
+	
+	text_id="$text_id@${sql%% *}"
+	short_name="${sql##* | }"
+	target_name="$target_name [$short_name]"
+	
+	echo --- Parse metrics ---	
+	
+	for line in "${metrics[@]}"
+	do
+		echo --- Metric string $line ---
+		
+		value=${line%%\#*}
+		line=${line#*\#}
+		type_id=${line%%\#*}
+		line=${line#*\#}
+		object=${line%%\#*}
+		line=${line#*\#}
+		description=${line%%\#*}
+		
+		value="${value//[[:space:]]/}"
+		
+		type_id="${type_id//@/}"
+		type_id="${type_id//[[:space:]]/}"
+		
+		object="${object//@/|}"
+		object="${object#"${object%%[![:space:]]*}"}"
+		object="${object%"${object##*[![:space:]]}"}"
+		
+		description="$(echo $description | sed 's/|/\n/g')"
+		description="${description#"${description%%[![:space:]]*}"}"
+		description="${description%"${description##*[![:space:]]}"}"
+		
+		echo $value - metric value
+		echo $type_id - type text id
+		echo $object - metric object name, optional
+		echo $description - metric description, optional
+		
+		if [ -n "$value" ] && [ -n "$type_id" ]
+		then
+			echo --- Get type $type_id ---
+			
+			sql="SELECT is_alert, name, description FROM $db_table_types WHERE text_id = '$type_id'"
+			echo $sql
+			sql=$($sql_cmd "$sql")
+			code=$?
+			sql="${sql#"${sql%%[![:space:]]*}"}"
+			
+			echo $sql
+			
+			if [ -n "$sql" ]
+			then
+				is_alert="${sql%% *}"
+				is_alert="${is_alert/f/FALSE}"
+				is_alert="${is_alert/t/TRUE}"
+				sql="${sql#* | }"
+				type_name="${sql%% |*}"
+				sql="${sql#* |}"
+				type_description="$(echo $sql | sed 's/\s*+\s|\s|\s/\n/g')"
+			else
+				is_alert=TRUE
+				type_name="UNKNOWN TYPE"
+				type_description="$type_id $object"
+				type_description="${type_description%"${type_description##*[![:space:]]}"}"
+			fi
+		
+			echo $is_alert - is_alert
+			echo $type_name - type name
+			echo $type_description - type description
+						
+			series_name="$target_name $type_name"
+			series_short_name="$short_name"
+			object_id=""
+			
+			if [ -n "$object" ]
+			then
+				object_id="@${object//@/-}"
+				object_id="${object_id//[[:space:]]/-}"
+				
+				series_name="$series_name [$object]"
+				series_short_name="$series_short_name $object"
+			fi
+			
+			series_text_id="$text_id@$type_id$object_id"
+			series_text_id="${series_text_id,,}"
+			
+			series_description=""
+			if [ -n "$type_description" ]
+			then
+				series_description="$type_description"
+			fi			
+			if [ -n "$description" ]
+			then
+				if [ -n "$series_description" ]
+				then
+					series_description="$series_description"$'\n'"$description"
+				else
+					series_description="$description"
+				fi
+			fi
+			if [ -n "$series_description" ]
+			then
+				series_description="'$series_description'"
+			else
+				series_description=NULL
+			fi
+			
+			echo --- Add series row of $series_text_id ---
+				
+			sql="INSERT INTO $db_table_series (target_id, text_id, is_alert, value, name, short_name, description) VALUES ($target_id, '$series_text_id', $is_alert, '$value', '$series_name', '$series_short_name', $series_description)"
+			echo $sql
+			sql=$($sql_cmd "$sql")
+			code=$?
+			if [ $code != 0 ]; then exit $code; fi
+		fi
+	done
+		
 	return
 fi
 
-echo === UNEXPECTED BLOCK ===
+echo === UNEXPECTED BLOCK - WILL NEVER EXECUTE ===
 
 env
 

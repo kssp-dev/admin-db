@@ -1,10 +1,10 @@
 <?php
 
-$title = 'Monitoring Scripts';
+$title = 'Monitoring Types';
 
 require_once __DIR__ . '/../app.php';
 
-$model = new MonitoringScript($app->db);
+$model = new MonitoringType($app->db);
 $model->setOrder('name');
 
 $model->getUserAction('delete')->confirmation = true;
@@ -14,15 +14,16 @@ $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 $crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['enabled', 'name', 'text_id', 'updated']
-			, 'addFields' => ['enabled', 'server_id', 'name', 'text_id', 'script']
-			, 'editFields' => ['enabled', 'server_id', 'name', 'text_id', 'script']
+			'displayFields' => ['is_alert', 'name', 'text_id', 'description']
+			, 'addFields' => ['is_alert', 'name', 'text_id', 'description']
+			, 'editFields' => ['is_alert', 'name', 'text_id', 'description']
 			, 'ipp' => 14
 		]
 	]
 	, 'quickSearch' => [
 		'name'
 		, 'text_id'
+		, 'description'
 	]
 	, 'menuActions' => []
 	, 'columnActions' => []

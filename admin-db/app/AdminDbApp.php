@@ -18,6 +18,8 @@ class AdminDbApp extends \Atk4\Ui\App {
         
         $this->uiPersistence = new Atk4\Ui\Persistence\Ui();
 		$this->uiPersistence->dateFormat = 'Y-m-d';
+		$this->uiPersistence->datetimeFormat = 'Y-m-d H-i-s';
+		$this->uiPersistence->timezone = 'UTC';
 		
 		//error_log(print_r("uiPersistence " . print_r($this->uiPersistence, true), true));
        
@@ -46,7 +48,11 @@ class AdminDbApp extends \Atk4\Ui\App {
 			$this->layout->addMenuItem([
 				'Alerts'
 				, 'icon'=>'bell'
-			], [$app_uri . 'tab/monitoring-alerts'], $menu);
+			], [$app_uri . 'tab/monitoring-last-alerts'], $menu);
+			$this->layout->addMenuItem([
+				'Metrics'
+				, 'icon'=>'tachometer alternate'
+			], [$app_uri . 'tab/monitoring-last-metrics'], $menu);
 			$this->layout->addMenuItem([
 				'Targets'
 				, 'icon'=>'crosshairs'
@@ -55,6 +61,10 @@ class AdminDbApp extends \Atk4\Ui\App {
 				'Scripts'
 				, 'icon'=>'file medical alternate'
 			], [$app_uri . 'tab/monitoring-scripts'], $menu);
+			$this->layout->addMenuItem([
+				'Types'
+				, 'icon'=>'microscope'
+			], [$app_uri . 'tab/monitoring-types'], $menu);
 			$this->layout->addMenuItem([
 				'Servers'
 				, 'icon'=>'server'
@@ -80,15 +90,15 @@ class AdminDbApp extends \Atk4\Ui\App {
 			$this->layout->addMenuItem([
 				'Site'
 				, 'icon'=>'code'
-			], [$app_uri . 'tab/site'], $menu);
+			], [$app_uri . 'tab/admin-site'], $menu);
 			$this->layout->addMenuItem([
 				'Export'
 				, 'icon'=>'file export'
-			], [$app_uri . 'tab/export'], $menu);
+			], [$app_uri . 'tab/admin-export'], $menu);
 			$this->layout->addMenuItem([
 				'Database'
 				, 'icon'=>'database'
-			], [$app_uri . 'tab/database'], $menu);
+			], [$app_uri . 'tab/admin-database'], $menu);
     }
 }
 

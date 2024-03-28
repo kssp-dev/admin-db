@@ -11,33 +11,33 @@ $model->getUserAction('delete')->confirmation = true;
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 
-$crud_options = [
+$crudOptions = [
 	[
 		'_crud' => [
 			'displayFields' => ['name', 'updated', 'logic']
 			, 'addFields' => [
-				"name"
-				, "script_ip"
-				, "script_file"
-				, "script_path"
-				, "timer_file"
-				, "logic"
-				, "database_ip"
-				, "database_name"
-				, "database_table"
-				, "description"
+				'name'
+				, 'script_ip'
+				, 'script_file'
+				, 'script_path'
+				, 'timer_file'
+				, 'logic'
+				, 'database_ip'
+				, 'database_name'
+				, 'database_table'
+				, 'description'
 			]
 			, 'editFields' => [
-				"name"
-				, "script_ip"
-				, "script_file"
-				, "script_path"
-				, "timer_file"
-				, "logic"
-				, "database_ip"
-				, "database_name"
-				, "database_table"
-				, "description"
+				'name'
+				, 'script_ip'
+				, 'script_file'
+				, 'script_path'
+				, 'timer_file'
+				, 'logic'
+				, 'database_ip'
+				, 'database_name'
+				, 'database_table'
+				, 'description'
 			]
 			, 'ipp' => 14
 		]
@@ -60,22 +60,22 @@ $crud_options = [
 
 // Export
 
-$export_model = new Export($app->db);
-$export_model->addCondition('from', 'scripts');
+$exportModel = new Export($app->db);
+$exportModel->addCondition('from', 'scripts');
 
-$from_model = new Script($app->db);
-$from_model->setOrder('name', 'asc');
+$fromModel = new Script($app->db);
+$fromModel->setOrder('name', 'asc');
 
-foreach ($export_model as $id => $entity) {
+foreach ($exportModel as $id => $entity) {
 	$icon = empty($entity->get('icon')) ? null : $entity->get('icon');
 	
-	$crud_options['menuActions']['Export to ' . $entity->get('to')] = [
+	$crudOptions['menuActions']['Export to ' . $entity->get('to')] = [
 		'icon' => $icon,
-		'action' => new ModalExporter($from_model, $entity)
+		'action' => new ModalExporter($fromModel, $entity)
 	];
 	
 	if (!empty($entity->get('details'))) {
-		$crud_options['columnActions']['Export to ' . $entity->get('to')] = [
+		$crudOptions['columnActions']['Export to ' . $entity->get('to')] = [
 			'icon' => $icon,
 			'caption' => isset($icon) ? null : $entity->get('to'),
 			'action' => function ($p, $from_entity) use ($entity) {
@@ -85,6 +85,6 @@ foreach ($export_model as $id => $entity) {
 	}
 }
 
-$crud->setModel($model, $crud_options);
+$crud->setModel($model, $crudOptions);
 
 ?>

@@ -11,16 +11,12 @@ $model->getUserAction('delete')->confirmation = true;
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 
-$crud_options = [
+$crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['name', 'run_count']
-			, 'addFields' => [
-				"name"
-			]
-			, 'editFields' => [
-				"name"
-			]
+			'displayFields' => ['enabled', 'name', 'run_count']
+			, 'addFields' => ['enabled', 'name']
+			, 'editFields' => ['enabled', 'name']
 			, 'ipp' => 14
 		]
 	]
@@ -31,6 +27,6 @@ $crud_options = [
 	, 'columnActions' => []
 ];
 
-$crud->setModel($model, $crud_options);
+$crud->setModel($model, $crudOptions);
 
 ?>

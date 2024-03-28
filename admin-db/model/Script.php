@@ -12,17 +12,17 @@ class Script extends HtmlTextModel {
 		$this->caption = 'Monitoring Script';
 
         $this->addFields([
-			  "name" => ['required' => true],
-			  "script_ip" => ['required' => true],
-			  "script_file" => ['required' => true],
-			  "script_path" => ['required' => true],
-			  "timer_file",
-			  "logic" => ['type' => 'text'],
-			  "database_ip",
-			  "database_name",
-			  "database_table",
-			  "description" => ['type' => 'text'],
-			  "updated" => ['type' => 'date']
+			  'name' => ['required' => true],
+			  'script_ip' => ['required' => true],
+			  'script_file' => ['required' => true],
+			  'script_path' => ['required' => true],
+			  'timer_file',
+			  'logic' => ['type' => 'text'],
+			  'database_ip',
+			  'database_name',
+			  'database_table',
+			  'description' => ['type' => 'text'],
+			  'updated' => ['type' => 'date']
         ]);
         
         $this->getField('id')->neverSave = true;

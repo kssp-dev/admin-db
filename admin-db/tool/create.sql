@@ -1,6 +1,8 @@
 -- PostgreSQL extension
 CREATE EXTENSION IF NOT EXISTS citext;
 
+--SET TIMEZONE='Europe/Moscow';
+
 
 -- IP address may be primary or secondary depending on primary_ip field is NULL or not.
 -- Primary ip is a main ip of a network interface, serving to link any services (primary_ip is NULL).
@@ -65,15 +67,26 @@ CREATE SCHEMA IF NOT EXISTS "monitoring";
 
 CREATE TABLE IF NOT EXISTS "monitoring"."servers" (
   "id" SERIAL PRIMARY KEY,
+  "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
   "run_count" INTEGER NOT NULL DEFAULT 0,
   "name" VARCHAR(31) NOT NULL UNIQUE
+);
+
+
+CREATE TABLE IF NOT EXISTS "monitoring"."types" (
+  "id" SERIAL PRIMARY KEY,
+  "text_id" VARCHAR(15) NOT NULL UNIQUE CHECK ("text_id" ~ '^[^@#\s]+$'),
+  "is_alert" BOOLEAN NOT NULL DEFAULT FALSE,
+  "name" VARCHAR(31) NOT NULL UNIQUE,
+  "description" TEXT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "id" SERIAL PRIMARY KEY,
   "server_id" INTEGER NOT NULL REFERENCES "monitoring"."servers",
-  "text_id" VARCHAR(15) NOT NULL UNIQUE CHECK ("text_id" ~ '^[^@\s]+$'),
+  "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
+  "text_id" VARCHAR(15) NOT NULL UNIQUE CHECK ("text_id" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "script" TEXT NOT NULL,
   "updated" DATE NOT NULL DEFAULT NOW()
@@ -83,24 +96,15 @@ CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
 CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
   "id" SERIAL PRIMARY KEY,
   "script_id" INTEGER NOT NULL REFERENCES "monitoring"."scripts",
-  "text_id" VARCHAR(15) NOT NULL CHECK ("text_id" ~ '^[^@\s]+$'),
+  "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
+  "text_id" VARCHAR(15) NOT NULL CHECK ("text_id" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL,
   "period" SMALLINT NOT NULL DEFAULT 5 CHECK ("period" > 0),
-  "target" VARCHAR(127) NOT NULL
+  "target" VARCHAR(127) NOT NULL,
+  "script_data" TEXT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_text_id_key" ON "monitoring"."targets" ("script_id", "text_id");
 CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_name_key" ON "monitoring"."targets" ("script_id", "name");
-
-
-CREATE TABLE IF NOT EXISTS "monitoring"."alerts" (
-  "id" SERIAL PRIMARY KEY,
-  "script_id" INTEGER NOT NULL REFERENCES "monitoring"."scripts",
-  "code" SMALLINT NOT NULL,
-  "name" VARCHAR(31) NOT NULL,
-  "description" TEXT NULL
-);
-CREATE UNIQUE INDEX IF NOT EXISTS "alerts_script_id_code_key" ON "monitoring"."alerts" ("script_id", "code");
-CREATE UNIQUE INDEX IF NOT EXISTS "alerts_script_id_name_key" ON "monitoring"."targets" ("script_id", "name");
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."log" (
@@ -112,19 +116,44 @@ CREATE TABLE IF NOT EXISTS "monitoring"."log" (
 );
 CREATE INDEX IF NOT EXISTS "log_time_idx" ON "monitoring"."log" ("time");
 
+
 CREATE TABLE IF NOT EXISTS "monitoring"."series" (
   "id" SERIAL PRIMARY KEY,
   "target_id" INTEGER NOT NULL REFERENCES "monitoring"."targets",
   "time" TIMESTAMP NOT NULL DEFAULT NOW(),
-  "text_id" VARCHAR(31) NOT NULL CHECK ("text_id" ~ '^[^@\s]+@[^@\s]+$'),
-  "metric" VARCHAR(127) NULL,
+  "text_id" VARCHAR(63) NOT NULL CHECK ("text_id" ~ '^[^@#\s]+@[^@#\s]+@[^@#\s]+@?[^@#\s]*$'),
   "is_alert" BOOLEAN NOT NULL,
-  "alert_name" VARCHAR(93) NULL,
-  "alert_description" TEXT NULL
+  "value" BIGINT NOT NULL,
+  "name" VARCHAR(127) NOT NULL,
+  "short_name" VARCHAR(63) NOT NULL,
+  "description" TEXT NULL
 );
 CREATE INDEX IF NOT EXISTS "series_time_idx" ON "monitoring"."series" ("time");
 CREATE INDEX IF NOT EXISTS "series_text_id_idx" ON "monitoring"."series" ("text_id");
-CREATE INDEX IF NOT EXISTS "series_metric_idx" ON "monitoring"."series" ("metric");
+CREATE INDEX IF NOT EXISTS "series_is_alert_idx" ON "monitoring"."series" ("is_alert");
+
+
+CREATE OR REPLACE VIEW "monitoring"."alerts" AS
+SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "monitoring"."series" WHERE "is_alert";
+
+
+CREATE OR REPLACE VIEW "monitoring"."metrics" AS
+SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "monitoring"."series" WHERE NOT "is_alert";
+
+
+CREATE OR REPLACE VIEW "monitoring"."last_series" AS
+WITH "s" AS (SELECT MAX("time") "tm", "text_id" "ti" FROM "monitoring"."series" GROUP BY "text_id")
+SELECT "id", "time", "is_alert", "value", "text_id", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "text_id"="ti";
+
+
+CREATE OR REPLACE VIEW "monitoring"."last_alerts" AS
+WITH "s" AS (SELECT MAX("time") "tm", "text_id" "ti" FROM "monitoring"."series" WHERE "is_alert" GROUP BY "text_id")
+SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "text_id"="ti";
+
+
+CREATE OR REPLACE VIEW "monitoring"."last_metrics" AS
+WITH "s" AS (SELECT MAX("time") "tm", "text_id" "ti" FROM "monitoring"."series" WHERE NOT "is_alert" GROUP BY "text_id")
+SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "text_id"="ti";
 
 --- END ---
 

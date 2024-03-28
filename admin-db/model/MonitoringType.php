@@ -1,31 +1,30 @@
 <?php
 
-class MonitoringScript extends Atk4\Data\Model {
-    public $table = 'monitoring.scripts';
+require_once 'EmptyNullModel.php';
+
+class MonitoringType extends EmptyNullModel {
+    public $table = 'monitoring.types';
 
     protected function init(): void
     {
         parent::init();
 		
-		$this->caption = 'Monitoring Script';
+		$this->caption = 'Monitoring Type';
 
         $this->addFields([
-			  'enabled' => ['type' => 'boolean', 'nullable' => false],
+			  'is_alert' => ['type' => 'boolean', 'nullable' => false],
 			  'name' => ['required' => true],
 			  'text_id' => ['required' => true],
-			  'script' => ['type' => 'text', 'required' => true],
-			  'updated' => ['type' => 'date']
+			  'description' => ['type' => 'text']
         ]);
         
-        $this->getField('id')->neverSave = true;
-		
-		$this->hasOne('server_id', ['required' => true, 'model' => new MonitoringServer($this->getPersistence())]);
-        
-		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_SAVE, function (\Atk4\Data\Model $m) {
-			$m->set('updated', new DateTime());
-		});
+        $this->getField('id')->neverSave = true;		
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
+			if (preg_match('/[\'"]/', $this->get('description')) == 1) {
+				return ['description' => 'Quotation mark forbidden'];
+			}
+			
 			if (preg_match('/^[^@#\s]+$/', $this->get('text_id')) != 1) {
 				return ['text_id' => '@, # or blank forbidden'];
 			}
@@ -43,7 +42,7 @@ class MonitoringScript extends Atk4\Data\Model {
 			if ($m != null && $m->get('id') != $this->get('id')) {
 				return ['name' => 'Must have unique name'];
 			}
-		});
+		});		
     }
 }
 

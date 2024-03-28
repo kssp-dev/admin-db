@@ -11,24 +11,12 @@ $model->getUserAction('delete')->confirmation = true;
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 
-$crud_options = [
+$crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['script_id', 'name', 'text_id', 'period', 'target']
-			, 'addFields' => [
-				"script_id"
-				, "name"
-				, "text_id"
-				, "period"
-				, "target"
-			]
-			, 'editFields' => [
-				"script_id"
-				, "name"
-				, "text_id"
-				, "period"
-				, "target"
-			]
+			'displayFields' => ['enabled', 'name', 'text_id', 'period', 'target']
+			, 'addFields' => ['enabled', 'script_id', 'name', 'text_id', 'period', 'target', 'script_data']
+			, 'editFields' => ['enabled', 'script_id', 'name', 'text_id', 'period', 'target', 'script_data']
 			, 'ipp' => 14
 		]
 	]
@@ -38,9 +26,18 @@ $crud_options = [
 		, 'target'
 	]
 	, 'menuActions' => []
-	, 'columnActions' => []
+	, 'columnActions' => [
+		'Monitoring Test' => [
+			'icon' => 'running',
+			'caption' => 'Test',
+			'ui' => 'basic green button',
+			'action' => function ($p, $from_entity) {
+				new ModalMonitoringTest($from_entity, $p);
+			}
+		]
+	]
 ];
 
-$crud->setModel($model, $crud_options);
+$crud->setModel($model, $crudOptions);
 
 ?>

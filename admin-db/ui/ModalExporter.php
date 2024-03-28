@@ -4,27 +4,27 @@ require_once 'ModalLoader.php';
 
 class ModalExporter extends ModalLoader {
 
-    function __construct(Atk4\Data\Model $from_model, Atk4\Data\Model $export_entity, Atk4\Ui\View $vp = null) {
+    function __construct(Atk4\Data\Model $fromModel, Atk4\Data\Model $exportEntity, Atk4\Ui\View $virtualPage = null) {
         parent::__construct(
-			'Export ' . $export_entity->get('from') . ' to ' . $export_entity->get('to')
-			, function (LoaderEx $p) use ($from_model, $export_entity) {
+			'Export ' . $exportEntity->get('from') . ' to ' . $exportEntity->get('to')
+			, function (LoaderEx $p) use ($fromModel, $exportEntity) {
 				global $app;
 				
 				$templates = [];
 				
-				foreach ($export_entity->getFields() as $name => $field) {
+				foreach ($exportEntity->getFields() as $name => $field) {
 					if ($field->type == 'text') {
 						$templates[$name] = str_replace(
 							['{{\n}}', '{{\r}}', '{{\t}}', '{{\v}}', '{{\e}}', '{{\f}}']
 							, ["\n", "\r", "\t", "\v", "\e", "\f"]
-							, $export_entity->get($name) ?? ''
+							, $exportEntity->get($name) ?? ''
 						);
 					}
 				}
 				
 				$replace = [];
 				
-				foreach ($from_model->getFields() as $name => $field) {
+				foreach ($fromModel->getFields() as $name => $field) {
 					switch ($field->type) {
 						case 'date':
 							$replace[$name] = function (Atk4\Data\Model $entity, $name) {
@@ -40,19 +40,19 @@ class ModalExporter extends ModalLoader {
 				
 				$output = [];
 				
-				if ($from_model->isEntity()) {		// Details export
+				if ($fromModel->isEntity()) {		// Details export
 					
 					if (!empty($templates['details'])) {
 						$str = $templates['details'];
 						
 						foreach ($replace as $name => $func) {
-							$str = str_replace('{{' . $name . '}}', $func($from_model, $name), $str);
+							$str = str_replace('{{' . $name . '}}', $func($fromModel, $name), $str);
 						}
 						array_push($output, $str);
 					}
 				
-					if ($from_model->get('name')) {
-						$p->addHeader($from_model->get('name'), 3);
+					if ($fromModel->get('name')) {
+						$p->addHeader($fromModel->get('name'), 3);
 					}
 					
 				} else {							// Table export
@@ -62,7 +62,7 @@ class ModalExporter extends ModalLoader {
 					}
 					
 					if (!empty($templates['row'])) {
-						foreach ($from_model as $id => $entity) {
+						foreach ($fromModel as $id => $entity) {
 							$str = $templates['row'];
 							
 							foreach ($replace as $name => $func) {
@@ -82,7 +82,7 @@ class ModalExporter extends ModalLoader {
 				
 				$p->addCloseButton($app);
 			}
-			, $vp
+			, $virtualPage
 		);
     }
     

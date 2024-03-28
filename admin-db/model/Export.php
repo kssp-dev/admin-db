@@ -12,14 +12,14 @@ class Export extends EmptyNullModel {
 		$this->caption = 'Export Template';
 
         $this->addFields([
-			"from" => ['required' => true],
-			"to" => ['required' => true],
-			"icon" => ['ui' => ['form' => [DropdownIcon::class]]],
-			"header" => ['type' => 'text'],
-			"row" => ['type' => 'text'],
-			"footer" => ['type' => 'text'],
-			"details" => ['type' => 'text'],
-			"link" => ['type' => 'text']
+			'from' => ['required' => true],
+			'to' => ['required' => true],
+			'icon' => ['ui' => ['form' => [DropdownIcon::class]]],
+			'header' => ['type' => 'text'],
+			'row' => ['type' => 'text'],
+			'footer' => ['type' => 'text'],
+			'details' => ['type' => 'text'],
+			'link' => ['type' => 'text']
         ]);
         
 		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_SAVE, function (\Atk4\Data\Model $m) {

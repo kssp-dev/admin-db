@@ -1,6 +1,8 @@
 <?php
 
-class MonitoringTarget extends Atk4\Data\Model {
+require_once 'EmptyNullModel.php';
+
+class MonitoringTarget extends EmptyNullModel {
     public $table = 'monitoring.targets';
 
     protected function init(): void
@@ -10,10 +12,12 @@ class MonitoringTarget extends Atk4\Data\Model {
 		$this->caption = 'Monitoring Target';
 
         $this->addFields([
-			  "name" => ['required' => true],
-			  "text_id" => ['required' => true],
-			  "target" => ['required' => true],
-			  "period" => ['required' => true, 'type' => 'integer']
+			  'enabled' => ['type' => 'boolean', 'nullable' => false],
+			  'name' => ['required' => true],
+			  'text_id' => ['required' => true],
+			  'period' => ['type' => 'integer', 'required' => true],
+			  'target' => ['required' => true],
+			  'script_data' => ['type' => 'text']
         ]);
         
         $this->getField('id')->neverSave = true;
@@ -25,8 +29,8 @@ class MonitoringTarget extends Atk4\Data\Model {
 				return ['period' => 'Must be a positive integer'];
 			}
 			
-			if (preg_match('/^[^@\s]+$/', $this->get('text_id')) != 1) {
-				return ['text_id' => 'At or blank forbidden'];
+			if (preg_match('/^[^@#\s]+$/', $this->get('text_id')) != 1) {
+				return ['text_id' => '@, # or blank forbidden'];
 			}
 			
 			$m = clone $this->getModel();
@@ -34,7 +38,7 @@ class MonitoringTarget extends Atk4\Data\Model {
 			$m->addCondition('text_id', $this->get('text_id'));
 			$m = $m->tryLoadAny();
 			if ($m != null && $m->get('id') != $this->get('id')) {
-				return ['text_id' => 'Target of the text id already exists'];
+				return ['text_id' => 'Must have unique text id'];
 			}
 			
 			$m = clone $this->getModel();
@@ -42,9 +46,9 @@ class MonitoringTarget extends Atk4\Data\Model {
 			$m->addCondition('name', $this->get('name'));
 			$m = $m->tryLoadAny();
 			if ($m != null && $m->get('id') != $this->get('id')) {
-				return ['name' => 'Target of the name already exists'];
+				return ['name' => 'Must have unique name'];
 			}
-		});		
+		});	
     }
 }
 

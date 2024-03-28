@@ -2,6 +2,11 @@
 
 class LoaderEx extends Atk4\Ui\Loader {
 	
+	function addGrid(Atk4\Data\Model $model, $seed, $fields = null) {
+		$grid = Atk4\Ui\Grid::addTo($this, $seed);
+		$grid->setModel($model, $fields);
+    }
+	
 	function addHeader($text, $size) {
 		Atk4\Ui\Header::addTo($this, [$text, 'size' => $size]);
     }
@@ -13,7 +18,7 @@ class LoaderEx extends Atk4\Ui\Loader {
 			'ui' => 'fluid'
 			, 'readOnly' => true
 			, 'rows' => 14
-		]])->set(is_array($output) ? implode($output) : strval($output));
+		]])->set(is_array($output) ? implode("\n", $output) : strval($output));
 		
 		Atk4\Ui\View::addTo($this, ['ui' => 'hidden divider']);
     }

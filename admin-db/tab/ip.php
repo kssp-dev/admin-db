@@ -18,20 +18,20 @@ $crud->addQuickSearch(['ip', 'primary_ip'], true);
 
 // Export
 
-$export_model = new Export($app->db);
-$export_model->addCondition('from', 'ip');
+$exportModel = new Export($app->db);
+$exportModel->addCondition('from', 'ip');
 
-$from_model = new PrimaryIp($app->db);
-$from_model->setOrder('ip', 'asc');
+$fromModel = new PrimaryIp($app->db);
+$fromModel->setOrder('ip', 'asc');
 
-foreach ($export_model as $id => $entity) {
+foreach ($exportModel as $id => $entity) {
 	$icon = empty($entity->get('icon')) ? null : $entity->get('icon');
 	
 	$crud->menu->addItem([
 		'Export to ' . $entity->get('to')
 		, 'icon' => $icon
 	])->on('click'
-		, new ModalExporter($from_model, $entity)
+		, new ModalExporter($fromModel, $entity)
 	);
 }
 

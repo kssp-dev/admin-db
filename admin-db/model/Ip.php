@@ -15,8 +15,8 @@ class Ip extends EmptyNullModel {
         $this->idField = 'ip';
 
         $this->addFields([
-			  "ip" => ['required' => true],
-			  "primary_ip"
+			  'ip' => ['required' => true],
+			  'primary_ip'
         ]);
         
 		$this->hasOne('PrimaryIp', ['model' => new PrimaryIp($this->getPersistence()), 'ourField' => 'primary_ip', 'theirField' => 'ip']);
