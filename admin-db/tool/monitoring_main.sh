@@ -21,7 +21,7 @@ if [ -z "$ADMIN_DB_PSW" ]; then export ADMIN_DB_PSW="$5"; fi
 
 if [ -z "$ADMIN_DB_HOST" ] || [ -z "$ADMIN_DB_PORT" ] || [ -z "$ADMIN_DB_NAME" ] || [ -z "$ADMIN_DB_USER" ] || [ -z "$ADMIN_DB_PSW" ]
 then
-	logger -s "MONITORING: Database connection parameters not found"
+	echo "Database connection parameters not found"
 	exit 222
 fi
 
@@ -41,7 +41,7 @@ then
 	
 	echo --- Clean up log ---
 	
-	sql="DELETE FROM $db_table_log WHERE time < NOW() - INTERVAL '7 days'"
+	sql="DELETE FROM $db_table_log WHERE time < NOW() - INTERVAL '3 days'"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
@@ -180,7 +180,7 @@ then
 	export temp_dir=$(mktemp -d)
 	if [ ! -d "$temp_dir" ]
 	then
-		logger -s "MONITORING: Can not create temp directory"
+		echo "Can not create temp directory"
 		exit 201
 	fi
 	
@@ -196,7 +196,7 @@ then
 	
 	if [ ! -r "$script_path" ]
 	then
-		logger -s "MONITORING: Can not write script file"
+		echo "Can not write script file"
 		code=202
 	fi
 	
@@ -222,7 +222,7 @@ then
 			
 			echo php '"'$script_path'"' '"$1"' >> "$runner_path"
 		else
-			logger -s "MONITORING: Unknown script format $script_id"
+			echo "Unknown script format $script_id"
 			code=203
 		fi
 		
