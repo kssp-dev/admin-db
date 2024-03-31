@@ -14,6 +14,7 @@ db_table_log='monitoring.log'
 db_table_series='monitoring.series'
 
 # parameters
+id_delimeter="@"
 delimeter=$'\t'
 new_line=$'\n'
 
@@ -42,7 +43,6 @@ export PGPASSWORD="$ADMIN_DB_PSW"
 
 sql_cmd="$sql_client -h $ADMIN_DB_HOST -p $ADMIN_DB_PORT -d $ADMIN_DB_NAME -U $ADMIN_DB_USER -t -c"
 
-#env
 
 # ------------------------------
 # Server stage
@@ -51,22 +51,6 @@ sql_cmd="$sql_client -h $ADMIN_DB_HOST -p $ADMIN_DB_PORT -d $ADMIN_DB_NAME -U $A
 if [ -z "$server_id" ] && [ -z "$script_id" ]
 then
 	echo === STAGE 1 ===
-	
-	echo --- Clean up log ---
-	
-	sql="DELETE FROM $db_table_log WHERE time < NOW() - INTERVAL '3 days'"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	if [ $code != 0 ]; then exit $code; fi
-	
-	echo --- Clean up series ---
-	
-	sql="DELETE FROM $db_table_series WHERE time < NOW() - INTERVAL '7 days'"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	if [ $code != 0 ]; then exit $code; fi
 	
 	echo --- Get server id of $(hostname) ---
 	
@@ -101,6 +85,24 @@ then
 	param="$param${delimeter}MONITORING_USER=$MONITORING_USER"
 	
 	. "$0" "$param"
+	
+	echo --- Clean up log ---
+	
+	sql="DELETE FROM $db_table_log WHERE time < NOW() - INTERVAL '3 days'"
+	echo $sql
+	sql=$($sql_cmd "$sql")
+	code=$?
+	echo $sql
+	if [ $code != 0 ]; then exit $code; fi
+	
+	echo --- Clean up series ---
+	
+	sql="DELETE FROM $db_table_series WHERE time < NOW() - INTERVAL '7 days'"
+	echo $sql
+	sql=$($sql_cmd "$sql")
+	code=$?
+	echo $sql
+	if [ $code != 0 ]; then exit $code; fi
 	
 	exit
 fi
@@ -293,29 +295,58 @@ then
 	
 	out_path="$runner_path.$target_id.out"
 	touch "$out_path"
+			
+	echo --- Script $script_id ---
 	
-	echo --- Target $target_id ---
-	
-	sql="SELECT target FROM $db_table_targets WHERE id = $target_id"
+	sql="SELECT text_id, name FROM $db_table_scripts WHERE id = $script_id"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	sql="${sql#"${sql%%[![:space:]]*}"}"
+	echo $sql
 	if [ -z "$sql" ]; then exit $code; fi
+	
+	export script_text_id="${sql%% *}"
+	export script_name="${sql##* | }"
+		
+	echo $script_text_id - script text id
+	echo $script_name - script name
+	
+	echo --- Target $target_id ---
+	
+	sql="SELECT target, text_id, name FROM $db_table_targets WHERE id = $target_id"
+	echo $sql
+	sql=$($sql_cmd "$sql")
+	code=$?
+	sql="${sql#"${sql%%[![:space:]]*}"}"
+	echo $sql
+	if [ -z "$sql" ]; then exit $code; fi
+	
+	target="${sql%% | *}"
+	sql="${sql#* | }"
+	export target_text_id="$script_text_id${id_delimeter}${sql%% *}"
+	export target_short_name="${sql##* | }"
+	export target_name="$script_name [$target_short_name]"
+	
+	echo $target - target
+	echo $target_text_id - target text id
+	echo $target_short_name - target short name
+	echo $target_name - target name
 	
 	
 	if [ -n "$MONITORING_USER" ]
 	then
 		echo --- Exec by user $MONITORING_USER ---
 	
-		sudo -u "$MONITORING_USER" bash "$runner_path" "$sql" 2>&1 > "$out_path"
+		sudo -u "$MONITORING_USER" bash "$runner_path" "$target" 2>&1 > "$out_path"
 		script_code=$?
 	else
 		echo --- Exec by user $(whoami) ---
 	
-		bash "$runner_path" "$sql" 2>&1 > "$out_path"
+		bash "$runner_path" "$target" 2>&1 > "$out_path"
 		script_code=$?
 	fi
+	
 	
 	echo --- Write log ---
 		
@@ -342,29 +373,6 @@ then
 		
 		return
 	fi
-			
-	echo --- Get text id ---
-	
-	sql="SELECT text_id, name FROM $db_table_scripts WHERE id = $script_id"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	sql="${sql#"${sql%%[![:space:]]*}"}"
-	if [ -z "$sql" ]; then exit $code; fi
-	
-	text_id="${sql%% *}"
-	target_name="${sql##* | }"
-	
-	sql="SELECT text_id, name FROM $db_table_targets WHERE id = $target_id"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	sql="${sql#"${sql%%[![:space:]]*}"}"
-	if [ -z "$sql" ]; then exit $code; fi
-	
-	text_id="$text_id@${sql%% *}"
-	short_name="${sql##* | }"
-	target_name="$target_name [$short_name]"
 	
 	echo --- Parse metrics ---	
 	
@@ -382,10 +390,10 @@ then
 		
 		value="${value//[[:space:]]/}"
 		
-		type_id="${type_id//@/}"
+		type_id="${type_id//${id_delimeter}/}"
 		type_id="${type_id//[[:space:]]/}"
 		
-		object="${object//@/|}"
+		object="${object//${id_delimeter}/|}"
 		object="${object#"${object%%[![:space:]]*}"}"
 		object="${object%"${object##*[![:space:]]}"}"
 		
@@ -431,19 +439,19 @@ then
 			echo $type_description - type description
 						
 			series_name="$target_name $type_name"
-			series_short_name="$short_name"
+			series_short_name="$target_short_name"
 			object_id=""
 			
 			if [ -n "$object" ]
 			then
-				object_id="@${object//@/-}"
+				object_id="${id_delimeter}${object//${id_delimeter}/-}"
 				object_id="${object_id//[[:space:]]/-}"
 				
 				series_name="$series_name [$object]"
 				series_short_name="$series_short_name $object"
 			fi
 			
-			series_text_id="$text_id@$type_id$object_id"
+			series_text_id="$target_text_id${id_delimeter}$type_id$object_id"
 			series_text_id="${series_text_id,,}"
 			
 			series_description=""

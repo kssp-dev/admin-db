@@ -63,6 +63,7 @@ INSERT INTO "public"."export" ("from", "to", "icon") VALUES ('ip', 'wiki', 'wiki
 --- MONITORING ---
 
 CREATE SCHEMA IF NOT EXISTS "monitoring";
+COMMENT ON SCHEMA "monitoring" IS 'Data based monitoring system database';
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."servers" (
@@ -71,6 +72,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."servers" (
   "run_count" INTEGER NOT NULL DEFAULT 0,
   "name" VARCHAR(31) NOT NULL UNIQUE
 );
+COMMENT ON TABLE "monitoring"."servers" IS 'Monitoring server hostname list';
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."types" (
@@ -80,6 +82,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."types" (
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "description" TEXT NULL
 );
+COMMENT ON TABLE "monitoring"."types" IS 'Types of monitoring';
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
@@ -91,6 +94,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "script" TEXT NOT NULL,
   "updated" DATE NOT NULL DEFAULT NOW()
 );
+COMMENT ON TABLE "monitoring"."scripts" IS 'Scripts run on monitoring servers';
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
@@ -105,6 +109,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_text_id_key" ON "monitoring"."targets" ("script_id", "text_id");
 CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_name_key" ON "monitoring"."targets" ("script_id", "name");
+COMMENT ON TABLE "monitoring"."targets" IS 'Data sources scripts fetch information from';
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."log" (
@@ -115,6 +120,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."log" (
   "output" TEXT NULL
 );
 CREATE INDEX IF NOT EXISTS "log_time_idx" ON "monitoring"."log" ("time");
+COMMENT ON TABLE "monitoring"."log" IS 'Debug information';
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."series" (
@@ -131,29 +137,35 @@ CREATE TABLE IF NOT EXISTS "monitoring"."series" (
 CREATE INDEX IF NOT EXISTS "series_time_idx" ON "monitoring"."series" ("time");
 CREATE INDEX IF NOT EXISTS "series_text_id_idx" ON "monitoring"."series" ("text_id");
 CREATE INDEX IF NOT EXISTS "series_is_alert_idx" ON "monitoring"."series" ("is_alert");
+COMMENT ON TABLE "monitoring"."series" IS 'Time series of metrics and alerts';
 
 
 CREATE OR REPLACE VIEW "monitoring"."alerts" AS
 SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "monitoring"."series" WHERE "is_alert";
+COMMENT ON VIEW "monitoring"."alerts" IS 'Time series of alerts only';
 
 
 CREATE OR REPLACE VIEW "monitoring"."metrics" AS
 SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "monitoring"."series" WHERE NOT "is_alert";
+COMMENT ON VIEW "monitoring"."metrics" IS 'Time series of metrics only';
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_series" AS
 WITH "s" AS (SELECT MAX("time") "tm", "text_id" "ti" FROM "monitoring"."series" GROUP BY "text_id")
 SELECT "id", "time", "is_alert", "value", "text_id", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "text_id"="ti";
+COMMENT ON VIEW "monitoring"."last_series" IS 'Last state of every metric or alert';
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_alerts" AS
 WITH "s" AS (SELECT MAX("time") "tm", "text_id" "ti" FROM "monitoring"."series" WHERE "is_alert" GROUP BY "text_id")
 SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "text_id"="ti";
+COMMENT ON VIEW "monitoring"."last_alerts" IS 'Last state of every alert';
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_metrics" AS
 WITH "s" AS (SELECT MAX("time") "tm", "text_id" "ti" FROM "monitoring"."series" WHERE NOT "is_alert" GROUP BY "text_id")
 SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "text_id"="ti";
+COMMENT ON VIEW "monitoring"."last_metrics" IS 'Last state of every metric';
 
 --- END ---
 
