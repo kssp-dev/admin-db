@@ -13,15 +13,28 @@ db_table_types='monitoring.types'
 db_table_log='monitoring.log'
 db_table_series='monitoring.series'
 
-if [ -z "$ADMIN_DB_HOST" ]; then export ADMIN_DB_HOST="$1"; fi
-if [ -z "$ADMIN_DB_PORT" ]; then export ADMIN_DB_PORT="$2"; fi
-if [ -z "$ADMIN_DB_NAME" ]; then export ADMIN_DB_NAME="$3"; fi
-if [ -z "$ADMIN_DB_USER" ]; then export ADMIN_DB_USER="$4"; fi
-if [ -z "$ADMIN_DB_PSW" ]; then export ADMIN_DB_PSW="$5"; fi
+# parameters
+delimeter=$'\t'
+new_line=$'\n'
 
+value="$1${delimeter}"
+length=0
+while [ "${#value}" != "$length" ]
+do
+	length=${#value}
+	value="${value//${delimeter}${delimeter}/${delimeter}}"
+done
+while [ -n "${value%%${delimeter}*}" ]
+do
+	export ${value%%${delimeter}*}
+	value=${value#*${delimeter}}
+done
+
+# check configuration
 if [ -z "$ADMIN_DB_HOST" ] || [ -z "$ADMIN_DB_PORT" ] || [ -z "$ADMIN_DB_NAME" ] || [ -z "$ADMIN_DB_USER" ] || [ -z "$ADMIN_DB_PSW" ]
 then
-	echo "Database connection parameters not found"
+	logger -s -i "MONITORING:Database connection parameters not found"
+	env | logger -s -i
 	exit 222
 fi
 
@@ -64,7 +77,7 @@ then
 	sql="${sql#"${sql%%[![:space:]]*}"}"
 	if [ -z "$sql" ]; then exit $code; fi
 	
-	export server_id="${sql%% *}"
+	server_id="${sql%% *}"
 	run_count="${sql##* }"
 	
 	let "run_count = ($run_count + 1) % 3628800"
@@ -77,11 +90,17 @@ then
 	code=$?
 	if [ $code != 0 ]; then exit $code; fi
 	
-	export run_count=$run_count
-	
 	echo --- Start scripts of server $server_id ---
 	
-	. "$0"
+	param="server_id=$server_id${delimeter}run_count=$run_count"
+	param="$param${delimeter}ADMIN_DB_HOST=$ADMIN_DB_HOST"
+	param="$param${delimeter}ADMIN_DB_PORT=$ADMIN_DB_PORT"
+	param="$param${delimeter}ADMIN_DB_NAME=$ADMIN_DB_NAME"
+	param="$param${delimeter}ADMIN_DB_USER=$ADMIN_DB_USER"
+	param="$param${delimeter}ADMIN_DB_PSW=$ADMIN_DB_PSW"
+	param="$param${delimeter}MONITORING_USER=$MONITORING_USER"
+	
+	. "$0" "$param"
 	
 	exit
 fi
@@ -108,8 +127,7 @@ then
 	do
 		echo --- Start targets of script $id ---
 	
-		export script_id=$id
-		. "$0"
+		. "$0" "script_id=$id${delimeter}$1"
 	done
 	
 	return
@@ -158,11 +176,11 @@ then
 	
 	if [ -n "$targets" ]
 	then
-		export target_ids="${targets#"${targets%%[![:space:]]*}"}"
-		
-		echo --- Start script $script_id on targets $target_ids ---
+		target_ids="${targets#"${targets%%[![:space:]]*}"}"
 	
-		. "$0" &
+		. "$0" "target_ids=$target_ids${delimeter}$1" &
+		
+		echo --- Started script $script_id on targets $target_ids PID $! ---
 	fi
 	
 	return
@@ -177,16 +195,16 @@ if [ -n "$script_id" ] && [ -n "$target_ids" ] && [ -z "$target_id" ]
 then
 	echo === STAGE 4 ===	
 	
-	export temp_dir=$(mktemp -d)
+	temp_dir=$(mktemp -d)
 	if [ ! -d "$temp_dir" ]
 	then
-		echo "Can not create temp directory"
+		logger -s -i "MONITORING:Can not create temp directory"
 		exit 201
 	fi
 	
 	echo --- Write script file ---
 	
-	export script_path="$temp_dir/script"
+	script_path="$temp_dir/script"
 	
 	sql="SELECT script FROM $db_table_scripts WHERE id = $script_id"
 	echo $sql
@@ -196,7 +214,7 @@ then
 	
 	if [ ! -r "$script_path" ]
 	then
-		echo "Can not write script file"
+		logger -s -i "MONITORING:Can not write script file"
 		code=202
 	fi
 	
@@ -211,18 +229,24 @@ then
 		
 		IFS= read -r line < "$script_path"
 		
-		if [ -n "$(echo $line | sed -E -n '/^#!\/.+\/bash\s*$/p')" ]
+		if [[ "$line" =~ ^#!\/.+\/bash\s*$ ]]
 		then
 			echo --- Bash script $script_id ---
 			
-			echo bash '"'$script_path'"' '"$1"' >> "$runner_path"	
-		elif [ -n "$(echo $line | sed -E -n '/^<\?php\s*$/p')" ]
+			echo bash '"'$script_path'"' '"$1"' >> "$runner_path"
+		elif [[ "$line" =~ ^#!\/\S+\s+python.*$ ]]
+		then
+			echo --- Python script $script_id ---
+			
+			echo python '"'$script_path'"' '"$1"' >> "$runner_path"
+		elif [[ "$line" =~ ^\<\?php\s*$ ]]
 		then
 			echo --- PHP script $script_id ---
 			
 			echo php '"'$script_path'"' '"$1"' >> "$runner_path"
 		else
-			echo "Unknown script format $script_id"
+			logger -s -i "MONITORING:Unknown script format $script_id"
+			cat "$script_path" | logger -s -i
 			code=203
 		fi
 		
@@ -231,14 +255,11 @@ then
 	
 	if [ $code == 0 ]
 	then
-		export runner_path="$runner_path"
-		
 		for id in $target_ids
 		do	
 			echo --- Start target $id ---
-	
-			export target_id=$id
-			. "$0"
+			
+			. "$0" "target_id=$id${delimeter}temp_dir=$temp_dir${delimeter}runner_path=$runner_path${delimeter}$1"
 		done
 	fi
 	
@@ -314,7 +335,6 @@ then
 	echo --- Check metrics ---
 	
 	mapfile -t metrics < <( sed -n -E '/METRIC#.+#METRIC/p' "$out_path" | sed -e 's/.*METRIC#//' -e 's/#METRIC.*/#/' )
-	echo "${metrics[@]}"
 	
 	if [ ${#metrics[*]} == 0 ]
 	then
@@ -369,7 +389,7 @@ then
 		object="${object#"${object%%[![:space:]]*}"}"
 		object="${object%"${object##*[![:space:]]}"}"
 		
-		description="$(echo $description | sed 's/|/\n/g')"
+		description="${description//|/$new_line}"
 		description="${description#"${description%%[![:space:]]*}"}"
 		description="${description%"${description##*[![:space:]]}"}"
 		
