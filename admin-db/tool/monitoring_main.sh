@@ -34,8 +34,9 @@ done
 # check configuration
 if [ -z "$ADMIN_DB_HOST" ] || [ -z "$ADMIN_DB_PORT" ] || [ -z "$ADMIN_DB_NAME" ] || [ -z "$ADMIN_DB_USER" ] || [ -z "$ADMIN_DB_PSW" ]
 then
-	logger -s -i "MONITORING:Database connection parameters not found"
-	env | logger -s -i
+	echo "Database connection parameters not found"
+	echo "$1"
+	env
 	exit 222
 fi
 
@@ -125,64 +126,60 @@ then
 	if [ $code != 0 ]; then exit $code; fi
 	sql="${sql#"${sql%%[![:space:]]*}"}"
 	
-	for id in $sql
+	pids=""
+	
+	for script_id in $sql
 	do
-		echo --- Start targets of script $id ---
-	
-		. "$0" "script_id=$id${delimeter}$1"
-	done
-	
-	return
-fi
-
-
-# ------------------------------
-# Targets stage
-# ------------------------------
-
-if [ -n "$run_count" ] && [ -n "$script_id" ] && [ -z "$target_ids" ]
-then
-	echo === STAGE 3 ===
-	
-	echo --- Get target ids ---
-	
-	sql="SELECT id, period FROM $db_table_targets WHERE script_id = $script_id AND enabled"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	if [ $code != 0 ]; then exit $code; fi
-	sql="${sql#"${sql%%[![:space:]]*}"}"
-	sql="${sql// |/}"
-	
-	targets=""
-	id=""
-	
-	echo --- Period filter ---
-	
-	for period in $sql
-	do
-		if [ -z "$id" ]
-		then
-			id=$period
-		else
-			let "period = $run_count % $period"
-			
-			if [ $period == 0 ]
-			then
-				targets="$targets $id"
-			fi
-			
-			id=""
-		fi
-	done
-	
-	if [ -n "$targets" ]
-	then
-		target_ids="${targets#"${targets%%[![:space:]]*}"}"
-	
-		. "$0" "target_ids=$target_ids${delimeter}$1" &
+		echo --- Get target ids of script $script_id ---
 		
-		echo --- Started script $script_id on targets $target_ids PID $! ---
+		sql="SELECT id, period FROM $db_table_targets WHERE script_id = $script_id AND enabled"
+		echo $sql
+		sql=$($sql_cmd "$sql")
+		code=$?
+		if [ $code != 0 ]; then exit $code; fi
+		sql="${sql#"${sql%%[![:space:]]*}"}"
+		sql="${sql// |/}"
+		
+		targets=""
+		id=""
+		
+		echo --- Period filter ---
+		
+		for period in $sql
+		do
+			if [ -z "$id" ]
+			then
+				id=$period
+			else
+				let "period = $run_count % $period"
+				
+				if [ $period == 0 ]
+				then
+					targets="$targets $id"
+				fi
+				
+				id=""
+			fi
+		done
+		
+		if [ -n "$targets" ]
+		then
+			target_ids="${targets#"${targets%%[![:space:]]*}"}"
+		
+			. "$0" "script_id=$script_id${delimeter}target_ids=$target_ids${delimeter}$1" &
+			pid=$!
+			
+			echo --- Started script $script_id on targets $target_ids PID $pid ---
+			
+			pids="$pids $pid"
+			
+			sleep 0.1
+		fi	
+	done
+	
+	if [ -n "$pids" ]
+	then
+		wait $pids
 	fi
 	
 	return
@@ -195,12 +192,12 @@ fi
 
 if [ -n "$script_id" ] && [ -n "$target_ids" ] && [ -z "$target_id" ]
 then
-	echo === STAGE 4 ===	
+	echo === STAGE 3 ===	
 	
 	temp_dir=$(mktemp -d)
 	if [ ! -d "$temp_dir" ]
 	then
-		logger -s -i "MONITORING:Can not create temp directory"
+		echo "Can not create temp directory"
 		exit 201
 	fi
 	
@@ -216,7 +213,7 @@ then
 	
 	if [ ! -r "$script_path" ]
 	then
-		logger -s -i "MONITORING:Can not write script file"
+		echo "Can not write script file"
 		code=202
 	fi
 	
@@ -247,8 +244,8 @@ then
 			
 			echo php '"'$script_path'"' '"$1"' >> "$runner_path"
 		else
-			logger -s -i "MONITORING:Unknown script format $script_id"
-			cat "$script_path" | logger -s -i
+			echo "Unknown script format $script_id"
+			cat "$script_path"
 			code=203
 		fi
 		
@@ -261,7 +258,7 @@ then
 		do	
 			echo --- Start target $id ---
 			
-			. "$0" "target_id=$id${delimeter}temp_dir=$temp_dir${delimeter}runner_path=$runner_path${delimeter}$1"
+			. "$0" "target_id=$id${delimeter}temp_dir=$temp_dir${delimeter}$1"
 		done
 	fi
 	
@@ -280,9 +277,9 @@ fi
 # Target stage
 # ------------------------------
 
-if [ -n "$script_id" ] && [ -n "$target_id" ] && [ -n "$runner_path" ]
+if [ -n "$script_id" ] && [ -n "$target_id" ] && [ -n "$temp_dir" ]
 then
-	echo === STAGE 5 ===
+	echo === STAGE 4 ===
 	
 	echo --- Write data file ---
 	
@@ -293,7 +290,7 @@ then
 	
 	echo --- Out path ---
 	
-	out_path="$runner_path.$target_id.out"
+	out_path="$temp_dir/script.$target_id.out"
 	touch "$out_path"
 			
 	echo --- Script $script_id ---
@@ -338,12 +335,12 @@ then
 	then
 		echo --- Exec by user $MONITORING_USER ---
 	
-		sudo -u "$MONITORING_USER" bash "$runner_path" "$target" 2>&1 > "$out_path"
+		sudo -u "$MONITORING_USER" bash "$temp_dir/script.sh" "$target" 2>&1 > "$out_path"
 		script_code=$?
 	else
 		echo --- Exec by user $(whoami) ---
 	
-		bash "$runner_path" "$target" 2>&1 > "$out_path"
+		bash "$temp_dir/script.sh" "$target" 2>&1 > "$out_path"
 		script_code=$?
 	fi
 	
