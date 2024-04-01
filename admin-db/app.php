@@ -17,7 +17,7 @@ $app_uri = substr_replace($app_dir, '', 0, $server_root_length);
 // Home tab redirect
 
 if (!isset($title)) {
-	header("Location: " . $app_uri . "tab/monitoring-targets.php");
+	header("Location: " . $app_uri . "tab/monitoring-last-alerts.php");
 	exit;
 }
 
