@@ -151,7 +151,7 @@ then
 			then
 				id=$period
 			else
-				let "period = $run_count % $period"
+				let "period = ($run_count % $period) - ($id % $period)"
 				
 				if [ $period == 0 ]
 				then
@@ -172,8 +172,6 @@ then
 			echo --- Started script $script_id on targets $target_ids PID $pid ---
 			
 			pids="$pids $pid"
-			
-			sleep 0.1
 		fi	
 	done
 	
