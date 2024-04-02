@@ -7,9 +7,9 @@ require_once __DIR__ . '/../app.php';
 $model = new MonitoringLastMetric($app->db);
 $model->setOrder(['time']);
 
-$grid = \Atk4\Ui\Grid::addTo($app, ['ipp' => 14]);
+$gruid = \Atk4\Ui\Grid::addTo($app, ['ipp' => 14]);
 
-$grid->setModel($model, ['time', 'value', 'text_id', 'name', 'description']);
-$grid->addQuickSearch(['text_id', 'name', 'description']);
+$gruid->setModel($model, ['time', 'value', 'uid', 'name', 'description']);
+$gruid->addQuickSearch(['uid', 'name', 'description']);
 
 ?>

@@ -12,7 +12,7 @@ class MonitoringLastAlert extends Atk4\Data\Model {
         $this->addFields([
 			  'time' => ['type' => 'datetime', 'neverSave' => true],
 			  'value' => ['type' => 'integer', 'neverSave' => true],
-			  'text_id' => ['neverSave' => true],
+			  'uid' => ['neverSave' => true],
 			  'name' => ['neverSave' => true],
 			  'short_name' => ['neverSave' => true],
 			  'description' => ['type' => 'text', 'neverSave' => true]

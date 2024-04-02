@@ -15,20 +15,20 @@ db_table_series='monitoring.series'
 
 # parameters
 id_delimeter="@"
-delimeter=$'\t'
+param_delimeter=$'\t'
 new_line=$'\n'
 
-value="$1${delimeter}"
+value="$1${param_delimeter}"
 length=0
 while [ "${#value}" != "$length" ]
 do
 	length=${#value}
-	value="${value//${delimeter}${delimeter}/${delimeter}}"
+	value="${value//${param_delimeter}${param_delimeter}/${param_delimeter}}"
 done
-while [ -n "${value%%${delimeter}*}" ]
+while [ -n "${value%%${param_delimeter}*}" ]
 do
-	export ${value%%${delimeter}*}
-	value=${value#*${delimeter}}
+	export ${value%%${param_delimeter}*}
+	value=${value#*${param_delimeter}}
 done
 
 # check configuration
@@ -77,13 +77,13 @@ then
 	
 	echo --- Start scripts of server $server_id ---
 	
-	param="server_id=$server_id${delimeter}run_count=$run_count"
-	param="$param${delimeter}ADMIN_DB_HOST=$ADMIN_DB_HOST"
-	param="$param${delimeter}ADMIN_DB_PORT=$ADMIN_DB_PORT"
-	param="$param${delimeter}ADMIN_DB_NAME=$ADMIN_DB_NAME"
-	param="$param${delimeter}ADMIN_DB_USER=$ADMIN_DB_USER"
-	param="$param${delimeter}ADMIN_DB_PSW=$ADMIN_DB_PSW"
-	param="$param${delimeter}MONITORING_USER=$MONITORING_USER"
+	param="server_id=$server_id${param_delimeter}run_count=$run_count"
+	param="$param${param_delimeter}ADMIN_DB_HOST=$ADMIN_DB_HOST"
+	param="$param${param_delimeter}ADMIN_DB_PORT=$ADMIN_DB_PORT"
+	param="$param${param_delimeter}ADMIN_DB_NAME=$ADMIN_DB_NAME"
+	param="$param${param_delimeter}ADMIN_DB_USER=$ADMIN_DB_USER"
+	param="$param${param_delimeter}ADMIN_DB_PSW=$ADMIN_DB_PSW"
+	param="$param${param_delimeter}MONITORING_USER=$MONITORING_USER"
 	
 	. "$0" "$param"
 	
@@ -166,7 +166,7 @@ then
 		then
 			target_ids="${targets#"${targets%%[![:space:]]*}"}"
 		
-			. "$0" "script_id=$script_id${delimeter}target_ids=$target_ids${delimeter}$1" &
+			. "$0" "script_id=$script_id${param_delimeter}target_ids=$target_ids${param_delimeter}$1" &
 			pid=$!
 			
 			echo --- Started script $script_id on targets $target_ids PID $pid ---
@@ -256,7 +256,7 @@ then
 		do	
 			echo --- Start target $id ---
 			
-			. "$0" "target_id=$id${delimeter}temp_dir=$temp_dir${delimeter}$1"
+			. "$0" "target_id=$id${param_delimeter}temp_dir=$temp_dir${param_delimeter}$1"
 		done
 	fi
 	
@@ -278,6 +278,43 @@ fi
 if [ -n "$script_id" ] && [ -n "$target_id" ] && [ -n "$temp_dir" ]
 then
 	echo === STAGE 4 ===
+			
+	echo --- Script $script_id ---
+	
+	sql="SELECT uid, name FROM $db_table_scripts WHERE id = $script_id"
+	echo $sql
+	sql=$($sql_cmd "$sql")
+	code=$?
+	sql="${sql#"${sql%%[![:space:]]*}"}"
+	echo $sql
+	if [ -z "$sql" ]; then exit $code; fi
+	
+	export script_uid="${sql%% *}"
+	export script_name="${sql##* | }"
+		
+	echo $script_uid - script uid
+	echo $script_name - script name
+	
+	echo --- Target $target_id ---
+	
+	sql="SELECT target, uid, name FROM $db_table_targets WHERE id = $target_id"
+	echo $sql
+	sql=$($sql_cmd "$sql")
+	code=$?
+	sql="${sql#"${sql%%[![:space:]]*}"}"
+	echo $sql
+	if [ -z "$sql" ]; then exit $code; fi
+	
+	target="${sql%% | *}"
+	sql="${sql#* | }"
+	export target_uid="$script_uid${id_delimeter}${sql%% *}"
+	export target_short_name="${sql##* | }"
+	export target_name="$script_name [$target_short_name]"
+	
+	echo $target - target
+	echo $target_uid - target uid
+	echo $target_short_name - target short name
+	echo $target_name - target name
 	
 	echo --- Write data file ---
 	
@@ -290,43 +327,6 @@ then
 	
 	out_path="$temp_dir/script.$target_id.out"
 	touch "$out_path"
-			
-	echo --- Script $script_id ---
-	
-	sql="SELECT text_id, name FROM $db_table_scripts WHERE id = $script_id"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	sql="${sql#"${sql%%[![:space:]]*}"}"
-	echo $sql
-	if [ -z "$sql" ]; then exit $code; fi
-	
-	export script_text_id="${sql%% *}"
-	export script_name="${sql##* | }"
-		
-	echo $script_text_id - script text id
-	echo $script_name - script name
-	
-	echo --- Target $target_id ---
-	
-	sql="SELECT target, text_id, name FROM $db_table_targets WHERE id = $target_id"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	sql="${sql#"${sql%%[![:space:]]*}"}"
-	echo $sql
-	if [ -z "$sql" ]; then exit $code; fi
-	
-	target="${sql%% | *}"
-	sql="${sql#* | }"
-	export target_text_id="$script_text_id${id_delimeter}${sql%% *}"
-	export target_short_name="${sql##* | }"
-	export target_name="$script_name [$target_short_name]"
-	
-	echo $target - target
-	echo $target_text_id - target text id
-	echo $target_short_name - target short name
-	echo $target_name - target name
 	
 	
 	if [ -n "$MONITORING_USER" ]
@@ -392,12 +392,12 @@ then
 		object="${object#"${object%%[![:space:]]*}"}"
 		object="${object%"${object##*[![:space:]]}"}"
 		
-		description="${description//|/$new_line}"
+		description="${description//^/$new_line}"
 		description="${description#"${description%%[![:space:]]*}"}"
 		description="${description%"${description##*[![:space:]]}"}"
 		
 		echo $value - metric value
-		echo $type_id - type text id
+		echo $type_id - type uid
 		echo $object - metric object name, optional
 		echo $description - metric description, optional
 		
@@ -405,7 +405,7 @@ then
 		then
 			echo --- Get type $type_id ---
 			
-			sql="SELECT is_alert, name, description FROM $db_table_types WHERE text_id = '$type_id'"
+			sql="SELECT is_alert, name, description FROM $db_table_types WHERE uid = '$type_id'"
 			echo $sql
 			sql=$($sql_cmd "$sql")
 			code=$?
@@ -425,8 +425,9 @@ then
 			else
 				is_alert=TRUE
 				type_name="UNKNOWN TYPE"
-				type_description="$type_id $object"
-				type_description="${type_description%"${type_description##*[![:space:]]}"}"
+				type_description=""
+				#type_description="$type_id $object"
+				#type_description="${type_description%"${type_description##*[![:space:]]}"}"
 			fi
 		
 			echo $is_alert - is_alert
@@ -446,8 +447,8 @@ then
 				series_short_name="$series_short_name $object"
 			fi
 			
-			series_text_id="$target_text_id${id_delimeter}$type_id$object_id"
-			series_text_id="${series_text_id,,}"
+			series_uid="$target_uid${id_delimeter}$type_id$object_id"
+			series_uid="${series_uid,,}"
 			
 			series_description=""
 			if [ -n "$type_description" ]
@@ -470,9 +471,9 @@ then
 				series_description=NULL
 			fi
 			
-			echo --- Add series row of $series_text_id ---
+			echo --- Add series row of $series_uid ---
 				
-			sql="INSERT INTO $db_table_series (target_id, text_id, is_alert, value, name, short_name, description) VALUES ($target_id, '$series_text_id', $is_alert, '$value', '$series_name', '$series_short_name', $series_description)"
+			sql="INSERT INTO $db_table_series (target_id, uid, is_alert, value, name, short_name, description) VALUES ($target_id, '$series_uid', $is_alert, '$value', '$series_name', '$series_short_name', $series_description)"
 			echo $sql
 			sql=$($sql_cmd "$sql")
 			code=$?

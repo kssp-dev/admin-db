@@ -14,15 +14,15 @@ $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 $crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['id', 'enabled', 'name', 'text_id', 'period', 'target']
-			, 'addFields' => ['enabled', 'script_id', 'name', 'text_id', 'period', 'target', 'script_data']
-			, 'editFields' => ['enabled', 'script_id', 'name', 'text_id', 'period', 'target', 'script_data']
+			'displayFields' => ['id', 'enabled', 'name', 'uid', 'period', 'target']
+			, 'addFields' => ['enabled', 'script_id', 'name', 'uid', 'period', 'target', 'script_data']
+			, 'editFields' => ['enabled', 'script_id', 'name', 'uid', 'period', 'target', 'script_data']
 			, 'ipp' => 14
 		]
 	]
 	, 'quickSearch' => [
 		'name'
-		, 'text_id'
+		, 'uid'
 		, 'target'
 	]
 	, 'menuActions' => []

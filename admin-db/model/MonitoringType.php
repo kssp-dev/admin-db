@@ -14,7 +14,7 @@ class MonitoringType extends EmptyNullModel {
         $this->addFields([
 			  'is_alert' => ['type' => 'boolean', 'nullable' => false],
 			  'name' => ['required' => true],
-			  'text_id' => ['required' => true],
+			  'uid' => ['required' => true],
 			  'description' => ['type' => 'text']
         ]);
         
@@ -25,15 +25,15 @@ class MonitoringType extends EmptyNullModel {
 				return ['description' => 'Quotation mark forbidden'];
 			}
 			
-			if (preg_match('/^[^@#\s]+$/', $this->get('text_id')) != 1) {
-				return ['text_id' => '@, # or blank forbidden'];
+			if (preg_match('/^[^@#\s]+$/', $this->get('uid')) != 1) {
+				return ['uid' => '@, # or blank forbidden'];
 			}
 			
 			$m = clone $this->getModel();
-			$m->addCondition('text_id', $this->get('text_id'));
+			$m->addCondition('uid', $this->get('uid'));
 			$m = $m->tryLoadAny();
 			if ($m != null && $m->get('id') != $this->get('id')) {
-				return ['text_id' => 'Must have unique text id'];
+				return ['uid' => 'Must have unique text id'];
 			}
 			
 			$m = clone $this->getModel();

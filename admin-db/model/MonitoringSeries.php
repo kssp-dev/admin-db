@@ -13,7 +13,7 @@ class MonitoringSeries extends EmptyNullModel {
 
         $this->addFields([
 			  'time' => ['type' => 'datetime', 'neverSave' => true],
-			  'text_id' => ['neverSave' => true],
+			  'uid' => ['neverSave' => true],
 			  'is_alert' => ['type' => 'boolean', 'neverSave' => true],
 			  'name' => ['neverSave' => true],
 			  'short_name' => ['neverSave' => true],

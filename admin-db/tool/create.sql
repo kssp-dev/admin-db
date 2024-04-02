@@ -77,7 +77,7 @@ COMMENT ON TABLE "monitoring"."servers" IS 'Monitoring server hostname list';
 
 CREATE TABLE IF NOT EXISTS "monitoring"."types" (
   "id" SERIAL PRIMARY KEY,
-  "text_id" VARCHAR(15) NOT NULL UNIQUE CHECK ("text_id" ~ '^[^@#\s]+$'),
+  "uid" VARCHAR(15) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
   "is_alert" BOOLEAN NOT NULL DEFAULT FALSE,
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "description" TEXT NULL
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "id" SERIAL PRIMARY KEY,
   "server_id" INTEGER NOT NULL REFERENCES "monitoring"."servers",
   "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
-  "text_id" VARCHAR(15) NOT NULL UNIQUE CHECK ("text_id" ~ '^[^@#\s]+$'),
+  "uid" VARCHAR(15) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "script" TEXT NOT NULL,
   "updated" DATE NOT NULL DEFAULT NOW()
@@ -101,13 +101,13 @@ CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
   "id" SERIAL PRIMARY KEY,
   "script_id" INTEGER NOT NULL REFERENCES "monitoring"."scripts",
   "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
-  "text_id" VARCHAR(15) NOT NULL CHECK ("text_id" ~ '^[^@#\s]+$'),
+  "uid" VARCHAR(15) NOT NULL CHECK ("uid" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL,
   "period" SMALLINT NOT NULL DEFAULT 5 CHECK ("period" > 0),
   "target" VARCHAR(127) NOT NULL,
   "script_data" TEXT NULL
 );
-CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_text_id_key" ON "monitoring"."targets" ("script_id", "text_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_uid_key" ON "monitoring"."targets" ("script_id", "uid");
 CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_name_key" ON "monitoring"."targets" ("script_id", "name");
 COMMENT ON TABLE "monitoring"."targets" IS 'Data sources scripts fetch information from';
 
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."series" (
   "id" SERIAL PRIMARY KEY,
   "target_id" INTEGER NOT NULL REFERENCES "monitoring"."targets",
   "time" TIMESTAMP NOT NULL DEFAULT NOW(),
-  "text_id" VARCHAR(63) NOT NULL CHECK ("text_id" ~ '^[^@#\s]+@[^@#\s]+@[^@#\s]+@?[^@#\s]*$'),
+  "uid" VARCHAR(63) NOT NULL CHECK ("uid" ~ '^[^@#\s]+@[^@#\s]+@[^@#\s]+@?[^@#\s]*$'),
   "is_alert" BOOLEAN NOT NULL,
   "value" BIGINT NOT NULL,
   "name" VARCHAR(127) NOT NULL,
@@ -135,36 +135,36 @@ CREATE TABLE IF NOT EXISTS "monitoring"."series" (
   "description" TEXT NULL
 );
 CREATE INDEX IF NOT EXISTS "series_time_idx" ON "monitoring"."series" ("time");
-CREATE INDEX IF NOT EXISTS "series_text_id_idx" ON "monitoring"."series" ("text_id");
+CREATE INDEX IF NOT EXISTS "series_uid_idx" ON "monitoring"."series" ("uid");
 CREATE INDEX IF NOT EXISTS "series_is_alert_idx" ON "monitoring"."series" ("is_alert");
 COMMENT ON TABLE "monitoring"."series" IS 'Time series of metrics and alerts';
 
 
 CREATE OR REPLACE VIEW "monitoring"."alerts" AS
-SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "monitoring"."series" WHERE "is_alert";
+SELECT "id", "time", "value", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE "is_alert";
 COMMENT ON VIEW "monitoring"."alerts" IS 'Time series of alerts only';
 
 
 CREATE OR REPLACE VIEW "monitoring"."metrics" AS
-SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "monitoring"."series" WHERE NOT "is_alert";
+SELECT "id", "time", "value", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE NOT "is_alert";
 COMMENT ON VIEW "monitoring"."metrics" IS 'Time series of metrics only';
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_series" AS
-WITH "s" AS (SELECT MAX("time") "tm", "text_id" "ti" FROM "monitoring"."series" GROUP BY "text_id")
-SELECT "id", "time", "is_alert", "value", "text_id", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "text_id"="ti";
+WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" GROUP BY "uid")
+SELECT "id", "time", "is_alert", "value", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
 COMMENT ON VIEW "monitoring"."last_series" IS 'Last state of every metric or alert';
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_alerts" AS
-WITH "s" AS (SELECT MAX("time") "tm", "text_id" "ti" FROM "monitoring"."series" WHERE "is_alert" GROUP BY "text_id")
-SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "text_id"="ti";
+WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE "is_alert" GROUP BY "uid")
+SELECT "id", "time", "value", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
 COMMENT ON VIEW "monitoring"."last_alerts" IS 'Last state of every alert';
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_metrics" AS
-WITH "s" AS (SELECT MAX("time") "tm", "text_id" "ti" FROM "monitoring"."series" WHERE NOT "is_alert" GROUP BY "text_id")
-SELECT "id", "time", "value", "text_id", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "text_id"="ti";
+WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE NOT "is_alert" GROUP BY "uid")
+SELECT "id", "time", "value", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
 COMMENT ON VIEW "monitoring"."last_metrics" IS 'Last state of every metric';
 
 --- END ---
