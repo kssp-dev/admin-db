@@ -20,11 +20,7 @@ $crudOptions = [
 			, 'ipp' => 14
 		]
 	]
-	, 'quickSearch' => [
-		'name'
-		, 'uid'
-		, 'description'
-	]
+	, 'quickSearch' => ['name', 'uid', 'description']
 	, 'menuActions' => []
 	, 'columnActions' => []
 ];

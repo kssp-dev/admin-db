@@ -60,7 +60,7 @@ class ModalMonitoringTest extends ModalLoader {
 					$seriesModel->addCondition('time', '>', $seriesEntity->get('time'));
 				}
 				
-				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'text_id', 'name']);			
+				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'uid', 'name']);			
 								
 				$p->addHeader('Script Log', 4);
 					

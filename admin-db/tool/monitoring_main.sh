@@ -351,17 +351,17 @@ then
 	code=$?
 	if [ $code != 0 ]; then exit $code; fi
 	
-	echo --- Script code $script_code ---
+	echo --- Script exit code $script_code ---
 	
 	if [ $script_code != 0 ]
 	then
-		return
+		metrics=( "$script_code#monitoring-script-error#" )
+	else
+		echo --- Check metrics ---
+		
+		mapfile -t metrics < <( sed -n -E '/METRIC#.+#METRIC/p' "$out_path" | sed -e 's/.*METRIC#//' -e 's/#METRIC.*/#/' )
 	fi
-	
-	echo --- Check metrics ---
-	
-	mapfile -t metrics < <( sed -n -E '/METRIC#.+#METRIC/p' "$out_path" | sed -e 's/.*METRIC#//' -e 's/#METRIC.*/#/' )
-	
+		
 	if [ ${#metrics[*]} == 0 ]
 	then
 		echo --- No metric found ---

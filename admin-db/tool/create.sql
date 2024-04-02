@@ -77,7 +77,7 @@ COMMENT ON TABLE "monitoring"."servers" IS 'Monitoring server hostname list';
 
 CREATE TABLE IF NOT EXISTS "monitoring"."types" (
   "id" SERIAL PRIMARY KEY,
-  "uid" VARCHAR(15) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
+  "uid" VARCHAR(31) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
   "is_alert" BOOLEAN NOT NULL DEFAULT FALSE,
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "description" TEXT NULL
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "id" SERIAL PRIMARY KEY,
   "server_id" INTEGER NOT NULL REFERENCES "monitoring"."servers",
   "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
-  "uid" VARCHAR(15) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
+  "uid" VARCHAR(31) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "script" TEXT NOT NULL,
   "updated" DATE NOT NULL DEFAULT NOW()
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
   "id" SERIAL PRIMARY KEY,
   "script_id" INTEGER NOT NULL REFERENCES "monitoring"."scripts",
   "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
-  "uid" VARCHAR(15) NOT NULL CHECK ("uid" ~ '^[^@#\s]+$'),
+  "uid" VARCHAR(31) NOT NULL CHECK ("uid" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL,
   "period" SMALLINT NOT NULL DEFAULT 5 CHECK ("period" > 0),
   "target" VARCHAR(127) NOT NULL,
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."series" (
   "id" SERIAL PRIMARY KEY,
   "target_id" INTEGER NOT NULL REFERENCES "monitoring"."targets",
   "time" TIMESTAMP NOT NULL DEFAULT NOW(),
-  "uid" VARCHAR(63) NOT NULL CHECK ("uid" ~ '^[^@#\s]+@[^@#\s]+@[^@#\s]+@?[^@#\s]*$'),
+  "uid" VARCHAR(127) NOT NULL CHECK ("uid" ~ '^[^@#\s]+@[^@#\s]+@[^@#\s]+@?[^@#\s]*$'),
   "is_alert" BOOLEAN NOT NULL,
   "value" BIGINT NOT NULL,
   "name" VARCHAR(127) NOT NULL,
