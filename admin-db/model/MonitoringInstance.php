@@ -19,6 +19,10 @@ class MonitoringInstance extends Atk4\Data\Model {
         $this->getField('id')->neverSave = true;
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
+			if (preg_match('/^[^\s]+$/', $this->get('instance')) != 1) {
+				return ['instance' => 'Blank forbidden'];
+			}
+			
 			$m = clone $this->getModel();
 			$m->addCondition('instance', $this->get('instance'));
 			$m = $m->tryLoadAny();

@@ -63,7 +63,8 @@ then
 	
 	echo --- Double run lock ---
 	
-	pid_file=/tmp/$(basename "$0").pid
+	pid_file=$(basename "$0")
+	pid_file=/tmp/$pid_file.$MONITORING_INSTANCE.pid
 	echo $pid_file
 	if [ -r "$pid_file" ] && ps -p $(cat "$pid_file") > /dev/null
 	then
