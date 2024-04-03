@@ -60,26 +60,23 @@ class ModalMonitoringTest extends ModalLoader {
 					$seriesModel->addCondition('time', '>', $seriesEntity->get('time'));
 				}
 				
-				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'uid', 'name']);			
+				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'uid', 'name']);
+				
 								
-				$p->addHeader('Script Log', 4);
-					
 				if ($logEntity && $logEntity->isEntity()) {
 					$logModel = clone $logEntity->getModel();
 					$logModel->addCondition('time', '>', $logEntity->get('time'));
 				}
 				
 				$logEntity = $logModel->tryLoadAny();
-				$log = '';
 				
 				if ($logEntity && $logEntity->isEntity()) {
-					$log = $logEntity->get('output');
+					$p->addHeader('Script Log', 4);					
+					$p->addTextarea($logEntity->get('output'));
 				}
 					
-				$p->addTextarea($log);
 				
-				$p->addHeader('Main Script Log', 4);
-								
+				$p->addHeader('Main Script Log', 4);								
 				$p->addTextarea($output);
 				
 				$p->addCloseButton($app);

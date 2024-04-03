@@ -53,6 +53,17 @@ if [ -z "$server_id" ] && [ -z "$script_id" ]
 then
 	echo === STAGE 1 ===
 	
+	echo --- Double run lock ---
+	
+	pid_file=/tmp/$(basename "$0").pid
+	echo $pid_file
+	if [ -r "$pid_file" ] && ps -p $(cat "$pid_file") > /dev/null
+	then
+		echo The script has already run
+		exit
+	fi
+	echo $$ | tee "$pid_file"
+	
 	echo --- Get server id of $(hostname) ---
 	
 	sql="SELECT id, run_count FROM $db_table_servers WHERE name = '$(hostname)' AND enabled"
@@ -104,6 +115,8 @@ then
 	code=$?
 	echo $sql
 	if [ $code != 0 ]; then exit $code; fi
+	
+	rm "$pid_file"
 	
 	exit
 fi
