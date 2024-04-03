@@ -48,6 +48,14 @@ class MonitoringTarget extends EmptyNullModel {
 			if ($m != null && $m->get('id') != $this->get('id')) {
 				return ['name' => 'Must have unique name'];
 			}
+			
+			$m = clone $this->getModel();
+			$m->addCondition('script_id', $this->get('script_id'));
+			$m->addCondition('target', $this->get('target'));
+			$m = $m->tryLoadAny();
+			if ($m != null && $m->get('id') != $this->get('id')) {
+				return ['name' => 'Must have unique target'];
+			}
 		});	
     }
 }

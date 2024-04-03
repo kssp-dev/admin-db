@@ -19,6 +19,6 @@ DROP TABLE IF EXISTS "monitoring"."log";
 DROP TABLE IF EXISTS "monitoring"."types";
 DROP TABLE IF EXISTS "monitoring"."targets";
 DROP TABLE IF EXISTS "monitoring"."scripts";
-DROP TABLE IF EXISTS "monitoring"."servers";
+DROP TABLE IF EXISTS "monitoring"."instances";
 
 DROP SCHEMA IF EXISTS "monitoring";

@@ -66,9 +66,9 @@ class AdminDbApp extends \Atk4\Ui\App {
 				, 'icon'=>'microscope'
 			], [$app_uri . 'tab/monitoring-types'], $menu);
 			$this->layout->addMenuItem([
-				'Servers'
+				'Instances'
 				, 'icon'=>'server'
-			], [$app_uri . 'tab/monitoring-servers'], $menu);
+			], [$app_uri . 'tab/monitoring-instances'], $menu);
 		
         $menu = $this->layout->addMenuGroup([
 			'Network'

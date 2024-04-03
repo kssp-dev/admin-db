@@ -66,13 +66,14 @@ CREATE SCHEMA IF NOT EXISTS "monitoring";
 COMMENT ON SCHEMA "monitoring" IS 'Data based monitoring system database';
 
 
-CREATE TABLE IF NOT EXISTS "monitoring"."servers" (
+CREATE TABLE IF NOT EXISTS "monitoring"."instances" (
   "id" SERIAL PRIMARY KEY,
   "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
+  "instance" VARCHAR(31) NOT NULL UNIQUE,
   "run_count" INTEGER NOT NULL DEFAULT 0,
-  "name" VARCHAR(31) NOT NULL UNIQUE
+  "name" VARCHAR(63) NOT NULL UNIQUE
 );
-COMMENT ON TABLE "monitoring"."servers" IS 'Monitoring server hostname list';
+COMMENT ON TABLE "monitoring"."instances" IS 'Monitoring instances list';
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."types" (
@@ -87,14 +88,14 @@ COMMENT ON TABLE "monitoring"."types" IS 'Types of monitoring';
 
 CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "id" SERIAL PRIMARY KEY,
-  "server_id" INTEGER NOT NULL REFERENCES "monitoring"."servers",
+  "instance_id" INTEGER NOT NULL REFERENCES "monitoring"."instances",
   "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
   "uid" VARCHAR(31) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "script" TEXT NOT NULL,
   "updated" DATE NOT NULL DEFAULT NOW()
 );
-COMMENT ON TABLE "monitoring"."scripts" IS 'Scripts run on monitoring servers';
+COMMENT ON TABLE "monitoring"."scripts" IS 'Scripts run on monitoring instances';
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
@@ -107,8 +108,9 @@ CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
   "target" VARCHAR(127) NOT NULL,
   "script_data" TEXT NULL
 );
-CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_uid_key" ON "monitoring"."targets" ("script_id", "uid");
-CREATE UNIQUE INDEX IF NOT EXISTS "targets_script_id_name_key" ON "monitoring"."targets" ("script_id", "name");
+CREATE UNIQUE INDEX IF NOT EXISTS "targets_uid_script_id_key" ON "monitoring"."targets" ("uid", "script_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "targets_name_script_id_key" ON "monitoring"."targets" ("name", "script_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "targets_target_script_id_key" ON "monitoring"."targets" ("target", "script_id");
 COMMENT ON TABLE "monitoring"."targets" IS 'Data sources scripts fetch information from';
 
 

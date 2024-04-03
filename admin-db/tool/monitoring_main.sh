@@ -6,7 +6,7 @@ script_dir=$(dirname "$script_dir")
 # database connection
 sql_client='psql'
 
-db_table_servers='monitoring.servers'
+db_table_instances='monitoring.instances'
 db_table_scripts='monitoring.scripts'
 db_table_targets='monitoring.targets'
 db_table_types='monitoring.types'
@@ -46,12 +46,20 @@ sql_cmd="$sql_client -h $ADMIN_DB_HOST -p $ADMIN_DB_PORT -d $ADMIN_DB_NAME -U $A
 
 
 # ------------------------------
-# Server stage
+# Instance stage
 # ------------------------------
 
-if [ -z "$server_id" ] && [ -z "$script_id" ]
+if [ -z "$instance_id" ] && [ -z "$script_id" ]
 then
 	echo === STAGE 1 ===
+	
+	echo --- Instance ---
+	
+	if [ -z "$MONITORING_INSTANCE"]
+	then
+		MONITORING_INSTANCE=$(hostname)
+	fi
+	echo $MONITORING_INSTANCE
 	
 	echo --- Double run lock ---
 	
@@ -64,37 +72,38 @@ then
 	fi
 	echo $$ | tee "$pid_file"
 	
-	echo --- Get server id of $(hostname) ---
+	echo --- Get instance id of $MONITORING_INSTANCE ---
 	
-	sql="SELECT id, run_count FROM $db_table_servers WHERE name = '$(hostname)' AND enabled"
+	sql="SELECT id, run_count FROM $db_table_instances WHERE instance = '$MONITORING_INSTANCE' AND enabled"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	sql="${sql#"${sql%%[![:space:]]*}"}"
 	if [ -z "$sql" ]; then exit $code; fi
 	
-	server_id="${sql%% *}"
+	instance_id="${sql%% *}"
 	run_count="${sql##* }"
 	
 	let "run_count = ($run_count + 1) % 3628800"
 	
 	echo --- Update run count ---
 	
-	sql="UPDATE $db_table_servers SET run_count = $run_count WHERE id = $server_id"
+	sql="UPDATE $db_table_instances SET run_count = $run_count WHERE id = $instance_id"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	if [ $code != 0 ]; then exit $code; fi
 	
-	echo --- Start scripts of server $server_id ---
+	echo --- Start scripts of instance $instance_id ---
 	
-	param="server_id=$server_id${param_delimeter}run_count=$run_count"
+	param="instance_id=$instance_id${param_delimeter}run_count=$run_count"
 	param="$param${param_delimeter}ADMIN_DB_HOST=$ADMIN_DB_HOST"
 	param="$param${param_delimeter}ADMIN_DB_PORT=$ADMIN_DB_PORT"
 	param="$param${param_delimeter}ADMIN_DB_NAME=$ADMIN_DB_NAME"
 	param="$param${param_delimeter}ADMIN_DB_USER=$ADMIN_DB_USER"
 	param="$param${param_delimeter}ADMIN_DB_PSW=$ADMIN_DB_PSW"
 	param="$param${param_delimeter}MONITORING_USER=$MONITORING_USER"
+	param="$param${param_delimeter}MONITORING_INSTANCE=$MONITORING_INSTANCE"
 	
 	. "$0" "$param"
 	
@@ -126,13 +135,13 @@ fi
 # Scripts stage
 # ------------------------------
 
-if [ -n "$server_id" ] && [ -n "$run_count" ] && [ -z "$script_id" ]
+if [ -n "$instance_id" ] && [ -n "$run_count" ] && [ -z "$script_id" ]
 then
 	echo === STAGE 2 ===
 	
 	echo --- Get script ids ---
 	
-	sql="SELECT id FROM $db_table_scripts WHERE server_id = $server_id AND enabled"
+	sql="SELECT id FROM $db_table_scripts WHERE instance_id = $instance_id AND enabled"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
@@ -457,7 +466,7 @@ then
 				object_id="${object_id//[[:space:]]/-}"
 				
 				series_name="$series_name [$object]"
-				series_short_name="$series_short_name $object"
+				series_short_name="$series_short_name - $object"
 			fi
 			
 			series_uid="$target_uid${id_delimeter}$type_id$object_id"
