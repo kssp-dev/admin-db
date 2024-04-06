@@ -47,10 +47,14 @@ class LoaderEx extends Atk4\Ui\Loader {
 		]);
 		$msg->text->addParagraph('');
 		
-		foreach ($output as $str) {
-			foreach (explode('<br>', $str) as $line) {
-				$msg->text->addParagraph($line);
+		if (is_array($output)) {
+			foreach ($output as $str) {
+				foreach (explode('<br>', $str) as $line) {
+					$msg->text->addParagraph($line);
+				}
 			}
+		} else {
+			$msg->text->addParagraph(strval($output));
 		}
     }
 

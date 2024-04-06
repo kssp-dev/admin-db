@@ -22,7 +22,16 @@ $crudOptions = [
 	]
 	, 'quickSearch' => ['id', 'name', 'uid']
 	, 'menuActions' => []
-	, 'columnActions' => []
+	, 'columnActions' => [
+		'Remove Series' => [
+			'icon' => 'trash',
+			'caption' => 'Series',
+			'ui' => 'basic orange button',
+			'action' => function ($p, $entity) {
+				new ModalMonitoringDeleteSeries($entity, $p);
+			}
+		]
+	]
 ];
 
 $crud->setModel($model, $crudOptions);

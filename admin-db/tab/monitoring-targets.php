@@ -27,8 +27,16 @@ $crudOptions = [
 			'icon' => 'running',
 			'caption' => 'Test',
 			'ui' => 'basic green button',
-			'action' => function ($p, $from_entity) {
-				new ModalMonitoringTest($from_entity, $p);
+			'action' => function ($p, $entity) {
+				new ModalMonitoringTest($entity, $p);
+			}
+		]
+		, 'Remove Series' => [
+			'icon' => 'trash',
+			'caption' => 'Series',
+			'ui' => 'basic orange button',
+			'action' => function ($p, $entity) {
+				new ModalMonitoringDeleteSeries($entity, $p);
 			}
 		]
 	]

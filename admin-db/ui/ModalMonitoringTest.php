@@ -8,9 +8,7 @@ class ModalMonitoringTest extends ModalLoader {
         parent::__construct(
 			'Monitoring Test'
 			, function (LoaderEx $p) use ($targetModel) {
-				if (!$targetModel->isEntity()) {
-					return;
-				}
+				$targetModel->assertIsEntity();
 				
 				global $app, $app_dir;
 				global $db_host, $db_port, $db_name, $db_user, $db_psw;
