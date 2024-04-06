@@ -494,9 +494,26 @@ then
 				series_description=NULL
 			fi
 			
+			echo --- Increment repetition of $series_uid ---
+	
+			repetition=0
+			sql="SELECT value, repetition FROM $db_table_series WHERE uid = '$series_uid' ORDER BY time DESC LIMIT 1"
+			echo $sql
+			sql=$($sql_cmd "$sql")
+			code=$?
+			if [ -n "$sql" ]
+			then
+				sql="${sql#"${sql%%[![:space:]]*}"}"				
+				if [ "$value" == "${sql%% *}" ]
+				then
+					let "repetition = ${sql##* | } + 1"
+				fi
+			fi
+			echo $repetition
+			
 			echo --- Add series row of $series_uid ---
 				
-			sql="INSERT INTO $db_table_series (target_id, uid, is_alert, value, name, short_name, description) VALUES ($target_id, '$series_uid', $is_alert, '$value', '$series_name', '$series_short_name', $series_description)"
+			sql="INSERT INTO $db_table_series (target_id, uid, is_alert, value, repetition, name, short_name, description) VALUES ($target_id, '$series_uid', $is_alert, '$value', '$repetition', '$series_name', '$series_short_name', $series_description)"
 			echo $sql
 			sql=$($sql_cmd "$sql")
 			code=$?

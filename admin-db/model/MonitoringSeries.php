@@ -18,6 +18,7 @@ class MonitoringSeries extends EmptyNullModel {
 			  'name' => ['neverSave' => true],
 			  'short_name' => ['neverSave' => true],
 			  'value' => ['type' => 'integer', 'neverSave' => true],
+			  'repetition' => ['type' => 'integer', 'neverSave' => true],
 			  'description' => ['type' => 'text', 'neverSave' => true]
         ]);
         

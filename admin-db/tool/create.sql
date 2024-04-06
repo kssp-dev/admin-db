@@ -132,6 +132,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."series" (
   "uid" VARCHAR(127) NOT NULL CHECK ("uid" ~ '^[^@#\s]+@[^@#\s]+@[^@#\s]+@?[^@#\s]*$'),
   "is_alert" BOOLEAN NOT NULL,
   "value" BIGINT NOT NULL,
+  "repetition" INTEGER NOT NULL DEFAULT 0,
   "name" VARCHAR(127) NOT NULL,
   "short_name" VARCHAR(63) NOT NULL,
   "description" TEXT NULL
@@ -143,30 +144,30 @@ COMMENT ON TABLE "monitoring"."series" IS 'Time series of metrics and alerts';
 
 
 CREATE OR REPLACE VIEW "monitoring"."alerts" AS
-SELECT "id", "time", "value", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE "is_alert";
+SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE "is_alert";
 COMMENT ON VIEW "monitoring"."alerts" IS 'Time series of alerts only';
 
 
 CREATE OR REPLACE VIEW "monitoring"."metrics" AS
-SELECT "id", "time", "value", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE NOT "is_alert";
+SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE NOT "is_alert";
 COMMENT ON VIEW "monitoring"."metrics" IS 'Time series of metrics only';
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_series" AS
 WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" GROUP BY "uid")
-SELECT "id", "time", "is_alert", "value", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
+SELECT "id", "time", "is_alert", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
 COMMENT ON VIEW "monitoring"."last_series" IS 'Last state of every metric or alert';
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_alerts" AS
 WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE "is_alert" GROUP BY "uid")
-SELECT "id", "time", "value", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
+SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
 COMMENT ON VIEW "monitoring"."last_alerts" IS 'Last state of every alert';
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_metrics" AS
 WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE NOT "is_alert" GROUP BY "uid")
-SELECT "id", "time", "value", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
+SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
 COMMENT ON VIEW "monitoring"."last_metrics" IS 'Last state of every metric';
 
 --- END ---

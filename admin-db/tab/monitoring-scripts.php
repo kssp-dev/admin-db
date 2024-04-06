@@ -15,8 +15,8 @@ $crudOptions = [
 	[
 		'_crud' => [
 			'displayFields' => ['enabled', 'name', 'uid', 'updated']
-			, 'addFields' => ['enabled', 'instance_id', 'name', 'uid', 'script']
-			, 'editFields' => ['enabled', 'instance_id', 'name', 'uid', 'script']
+			, 'addFields' => ['enabled', 'instance_id', 'name', 'uid']
+			, 'editFields' => ['enabled', 'instance_id', 'name']
 			, 'ipp' => 14
 		]
 	]
