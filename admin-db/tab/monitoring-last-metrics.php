@@ -9,7 +9,8 @@ $model->setOrder(['time']);
 
 $model->removeUserAction('add');
 $model->removeUserAction('edit');
-$model->removeUserAction('delete');
+
+$model->getUserAction('delete')->confirmation = true;
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 

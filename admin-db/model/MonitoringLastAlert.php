@@ -1,6 +1,8 @@
 <?php
 
-class MonitoringLastAlert extends Atk4\Data\Model {
+require_once 'MonitoringSeriesView.php';
+
+class MonitoringLastAlert extends MonitoringSeriesView {
     public $table = 'monitoring.last_alerts';
 
     protected function init(): void
@@ -18,20 +20,6 @@ class MonitoringLastAlert extends Atk4\Data\Model {
 			  'short_name' => ['neverSave' => true],
 			  'description' => ['type' => 'text', 'neverSave' => true]
         ]);
-        
-		$this->onHook(Atk4\Data\Model::HOOK_BEFORE_DELETE, function (Atk4\Data\Model $entity) {
-			global $app;
-
-			$series = new MonitoringSeries($app->db);
-			$series->addCondition('uid', $entity->get('uid'));
-			
-			foreach ($series as $id => $entity) {
-				$entity->delete();
-			}
-
-			$entity->hook(Atk4\Data\Model::HOOK_AFTER_DELETE);
-			$entity->breakHook(true); // this will cancel original delete()
-		});
     }
 }
 

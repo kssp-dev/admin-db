@@ -1,6 +1,8 @@
 <?php
 
-class MonitoringLastMetric extends Atk4\Data\Model {
+require_once 'MonitoringSeriesView.php';
+
+class MonitoringLastMetric extends MonitoringSeriesView {
     public $table = 'monitoring.last_metrics';
 
     protected function init(): void
