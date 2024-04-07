@@ -80,55 +80,61 @@ then
 	sql=$($sql_cmd "$sql")
 	code=$?
 	sql="${sql#"${sql%%[![:space:]]*}"}"
-	if [ -z "$sql" ]; then exit $code; fi
+	if [ -n "$sql" ]; then	
+		instance_id="${sql%% *}"
+		run_count="${sql##* }"
+		
+		let "run_count = ($run_count + 1) % 3628800"
+		
+		echo --- Update run count ---
+		
+		sql="UPDATE $db_table_instances SET run_count = $run_count WHERE id = $instance_id"
+		echo $sql
+		sql=$($sql_cmd "$sql")
+		code=$?
+		if [ $code == 0 ]; then		
+			echo --- Start scripts of instance $instance_id ---
+			
+			param="instance_id=$instance_id${param_delimeter}run_count=$run_count"
+			param="$param${param_delimeter}ADMIN_DB_HOST=$ADMIN_DB_HOST"
+			param="$param${param_delimeter}ADMIN_DB_PORT=$ADMIN_DB_PORT"
+			param="$param${param_delimeter}ADMIN_DB_NAME=$ADMIN_DB_NAME"
+			param="$param${param_delimeter}ADMIN_DB_USER=$ADMIN_DB_USER"
+			param="$param${param_delimeter}ADMIN_DB_PSW=$ADMIN_DB_PSW"
+			param="$param${param_delimeter}MONITORING_USER=$MONITORING_USER"
+			param="$param${param_delimeter}MONITORING_INSTANCE=$MONITORING_INSTANCE"
+			
+			. "$0" "$param"
+			
+			echo --- Clean up log ---
+			
+			sql="DELETE FROM $db_table_log WHERE time < NOW() - INTERVAL '3 days'"
+			echo $sql
+			sql=$($sql_cmd "$sql")
+			code=$?
+			echo $sql
+			if [ $code != 0 ]; then
+				echo SQL DELETE Error $code
+			fi
+			
+			echo --- Clean up series ---
+			
+			sql="DELETE FROM $db_table_series WHERE time < NOW() - INTERVAL '7 days'"
+			echo $sql
+			sql=$($sql_cmd "$sql")
+			code=$?
+			echo $sql
+			if [ $code != 0 ]; then
+				echo SQL DELETE Error $code
+			fi
+		fi
+	fi
 	
-	instance_id="${sql%% *}"
-	run_count="${sql##* }"
-	
-	let "run_count = ($run_count + 1) % 3628800"
-	
-	echo --- Update run count ---
-	
-	sql="UPDATE $db_table_instances SET run_count = $run_count WHERE id = $instance_id"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	if [ $code != 0 ]; then exit $code; fi
-	
-	echo --- Start scripts of instance $instance_id ---
-	
-	param="instance_id=$instance_id${param_delimeter}run_count=$run_count"
-	param="$param${param_delimeter}ADMIN_DB_HOST=$ADMIN_DB_HOST"
-	param="$param${param_delimeter}ADMIN_DB_PORT=$ADMIN_DB_PORT"
-	param="$param${param_delimeter}ADMIN_DB_NAME=$ADMIN_DB_NAME"
-	param="$param${param_delimeter}ADMIN_DB_USER=$ADMIN_DB_USER"
-	param="$param${param_delimeter}ADMIN_DB_PSW=$ADMIN_DB_PSW"
-	param="$param${param_delimeter}MONITORING_USER=$MONITORING_USER"
-	param="$param${param_delimeter}MONITORING_INSTANCE=$MONITORING_INSTANCE"
-	
-	. "$0" "$param"
-	
-	echo --- Clean up log ---
-	
-	sql="DELETE FROM $db_table_log WHERE time < NOW() - INTERVAL '3 days'"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	echo $sql
-	if [ $code != 0 ]; then exit $code; fi
-	
-	echo --- Clean up series ---
-	
-	sql="DELETE FROM $db_table_series WHERE time < NOW() - INTERVAL '7 days'"
-	echo $sql
-	sql=$($sql_cmd "$sql")
-	code=$?
-	echo $sql
-	if [ $code != 0 ]; then exit $code; fi
+	echo --- Remove PID file ---
 	
 	rm "$pid_file"
 	
-	exit
+	exit $code
 fi
 
 

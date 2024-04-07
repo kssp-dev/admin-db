@@ -26,7 +26,6 @@ class ModalLoader extends Atk4\Ui\Js\JsModal {
 		} else {
 			$view = $app->add([Atk4\Ui\VirtualPage::class])
 				->set($func);
-			//error_log(print_r($view, true));
 		}
 		
         parent::__construct(

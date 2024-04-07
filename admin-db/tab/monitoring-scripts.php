@@ -23,7 +23,15 @@ $crudOptions = [
 	, 'quickSearch' => ['id', 'name', 'uid']
 	, 'menuActions' => []
 	, 'columnActions' => [
-		'Remove Series' => [
+		'Script Editor' => [
+			'icon' => 'file medical alternate',
+			'caption' => 'Script',
+			'ui' => 'basic blue button',
+			'action' => function ($p, $entity) {
+				new ScriptEditor($entity, $p);
+			}
+		]
+		, 'Remove Series' => [
 			'icon' => 'trash',
 			'caption' => 'Series',
 			'ui' => 'basic orange button',
