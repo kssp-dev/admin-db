@@ -13,7 +13,7 @@ class MonitoringScript extends Atk4\Data\Model {
 			  'enabled' => ['type' => 'boolean', 'nullable' => false],
 			  'name' => ['required' => true],
 			  'uid' => ['required' => true],
-			  'script' => ['type' => 'text', 'required' => true],
+			  'script' => ['type' => 'text'],
 			  'updated' => ['type' => 'date']
         ]);
         
@@ -31,17 +31,21 @@ class MonitoringScript extends Atk4\Data\Model {
 			}
 			
 			$m = clone $this->getModel();
+			$m->addCondition('name', $this->get('name'));
+			$m = $m->tryLoadAny();
+			if ($m != null && $m->get('id') != $this->get('id')) {
+				return ['name' => 'Must have unique name'];
+			}
+			
+			$m = clone $this->getModel();
 			$m->addCondition('uid', $this->get('uid'));
 			$m = $m->tryLoadAny();
 			if ($m != null && $m->get('id') != $this->get('id')) {
 				return ['uid' => 'Must have unique text id'];
 			}
 			
-			$m = clone $this->getModel();
-			$m->addCondition('name', $this->get('name'));
-			$m = $m->tryLoadAny();
-			if ($m != null && $m->get('id') != $this->get('id')) {
-				return ['name' => 'Must have unique name'];
+			if (empty($this->get('script'))) {
+				$this->set('script', '');
 			}
 		});
     }

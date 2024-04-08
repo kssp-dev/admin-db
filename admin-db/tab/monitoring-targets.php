@@ -23,7 +23,13 @@ $crudOptions = [
 	, 'quickSearch' => ['id', 'name', 'uid', 'target']
 	, 'menuActions' => []
 	, 'columnActions' => [
-		'Monitoring Test' => [
+		'Clone Target' => [
+			'icon' => 'clone outline',
+			'action' => function ($p, $entity, $crud) {
+				new ModalCloner($entity, $p, $crud, ['name', 'uid', 'target']);
+			}
+		]
+		, 'Monitoring Test' => [
 			'icon' => 'running',
 			'caption' => 'Test',
 			'ui' => 'basic green button',

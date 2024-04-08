@@ -21,8 +21,11 @@ class MonitoringType extends EmptyNullModel {
         $this->getField('id')->neverSave = true;		
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
-			if (preg_match('/[\'"]/', $this->get('description')) == 1) {
-				return ['description' => 'Quotation mark forbidden'];
+			$m = clone $this->getModel();
+			$m->addCondition('name', $this->get('name'));
+			$m = $m->tryLoadAny();
+			if ($m != null && $m->get('id') != $this->get('id')) {
+				return ['name' => 'Must have unique name'];
 			}
 			
 			if (preg_match('/^[^@#\s]+$/', $this->get('uid')) != 1) {
@@ -36,11 +39,8 @@ class MonitoringType extends EmptyNullModel {
 				return ['uid' => 'Must have unique text id'];
 			}
 			
-			$m = clone $this->getModel();
-			$m->addCondition('name', $this->get('name'));
-			$m = $m->tryLoadAny();
-			if ($m != null && $m->get('id') != $this->get('id')) {
-				return ['name' => 'Must have unique name'];
+			if (preg_match('/[\'"]/', $this->get('description')) == 1) {
+				return ['description' => 'Quotation mark forbidden'];
 			}
 		});		
     }

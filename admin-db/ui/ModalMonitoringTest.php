@@ -40,7 +40,7 @@ class ModalMonitoringTest extends ModalLoader {
 					$param = $param . $key . '=' . $var . "\t";
 				}
 
-				$cmd = 'bash "' . __DIR__  . '/../tool/monitoring_main.sh" "' . $param . '" 2>&1';
+				$cmd = 'bash "' . __DIR__  . '/../tool/monitoring_launcher.sh" "' . $param . '" 2>&1';
 				//print_r($cmd . "\n");
 
 				
@@ -74,7 +74,7 @@ class ModalMonitoringTest extends ModalLoader {
 				}
 					
 				
-				$p->addHeader('Main Script Log', 4);								
+				$p->addHeader('Laucher Log', 4);								
 				$p->addTextarea($output);
 				
 				$p->addCloseButton($app);

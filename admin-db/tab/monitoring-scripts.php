@@ -23,7 +23,13 @@ $crudOptions = [
 	, 'quickSearch' => ['id', 'name', 'uid']
 	, 'menuActions' => []
 	, 'columnActions' => [
-		'Script Editor' => [
+		'Clone Script' => [
+			'icon' => 'clone outline',
+			'action' => function ($p, $entity, $crud) {
+				new ModalCloner($entity, $p, $crud, ['name', 'uid']);
+			}
+		]
+		, 'Script Editor' => [
 			'icon' => 'file medical alternate',
 			'caption' => 'Script',
 			'ui' => 'basic blue button',

@@ -163,7 +163,7 @@ CREATE OR REPLACE RULE "delete_last_series_rule" AS ON DELETE TO "monitoring"."l
 
 
 CREATE OR REPLACE VIEW "monitoring"."last_alerts" AS
-WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE "is_alert" AND "repetition" >= 2 GROUP BY "uid")
+WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE "is_alert" GROUP BY "uid")
 SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
 COMMENT ON VIEW "monitoring"."last_alerts" IS 'Last state of every alert';
 CREATE OR REPLACE RULE "delete_last_alerts_rule" AS ON DELETE TO "monitoring"."last_alerts" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";

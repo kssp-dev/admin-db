@@ -25,8 +25,12 @@ class MonitoringTarget extends EmptyNullModel {
 		$this->hasOne('script_id', ['required' => true, 'model' => new MonitoringScript($this->getPersistence())]);
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
-			if ($this->get('period') <= 0) {
-				return ['period' => 'Must be a positive integer'];
+			$m = clone $this->getModel();
+			$m->addCondition('script_id', $this->get('script_id'));
+			$m->addCondition('name', $this->get('name'));
+			$m = $m->tryLoadAny();
+			if ($m != null && $m->get('id') != $this->get('id')) {
+				return ['name' => 'Must have unique name'];
 			}
 			
 			if (preg_match('/^[^@#\s]+$/', $this->get('uid')) != 1) {
@@ -41,12 +45,8 @@ class MonitoringTarget extends EmptyNullModel {
 				return ['uid' => 'Must have unique text id'];
 			}
 			
-			$m = clone $this->getModel();
-			$m->addCondition('script_id', $this->get('script_id'));
-			$m->addCondition('name', $this->get('name'));
-			$m = $m->tryLoadAny();
-			if ($m != null && $m->get('id') != $this->get('id')) {
-				return ['name' => 'Must have unique name'];
+			if ($this->get('period') <= 0) {
+				return ['period' => 'Must be a positive integer'];
 			}
 			
 			$m = clone $this->getModel();
@@ -54,7 +54,7 @@ class MonitoringTarget extends EmptyNullModel {
 			$m->addCondition('target', $this->get('target'));
 			$m = $m->tryLoadAny();
 			if ($m != null && $m->get('id') != $this->get('id')) {
-				return ['name' => 'Must have unique target'];
+				return ['target' => 'Must have unique target'];
 			}
 		});	
     }

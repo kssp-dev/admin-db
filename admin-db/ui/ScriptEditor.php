@@ -8,14 +8,14 @@ class ScriptEditor extends Atk4\Ui\Js\JsModal {
 		global $app;
 		
 		$form = Atk4\Ui\Form::addTo($vp);
-		$text = $form->addControl('text', ['caption' => $entity->get('name')], ['type' => 'text']);
-		$text->rows = 30;
-		$text->set($entity->get('script'));
+		$form->setModel($entity, ['script']);
+		$form->getControl('script')->rows = 30;
+		$form->getControl('script')->caption = $entity->get('name');
 		
-		$form->onSubmit(function () use ($entity, $form) {
-					$entity->set('script', $form->model->get('text'));
-					$entity->save();
-					usleep(500000);
+		$form->onSubmit(function (Atk4\Ui\Form $form) {
+			$form->model->save();
+			
+			return new Atk4\Ui\Js\JsToast('Saved successfully!');
 		});
 		
         parent::__construct(

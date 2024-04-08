@@ -332,6 +332,7 @@ class MasterCrud extends View
 
             foreach ($ca as $key => $action) {
 				$seed = [];
+				$confirmation = '';
                 if (is_numeric($key)) {
                     $key = $action;
                 }
@@ -343,6 +344,10 @@ class MasterCrud extends View
 					if (!empty($action['caption'])) {
 						$seed[0] = $action['caption'];
 						$seed['caption'] = null;
+					}
+					if (!empty($action['confirmation'])) {
+						$confirmation = $action['confirmation'];
+						$seed['confirmation'] = null;
 					}
 					if (isset($action['action'])) {
 						$action = $action['action'];
@@ -361,15 +366,16 @@ class MasterCrud extends View
                 if ($action instanceof \Closure) {
                     $crud->addModalAction($seed, $key,
 						static function ($p, $id) use ($action, $crud) {
-							$action($p, $crud->model->load($id));
+							$action($p, $crud->model->load($id), $crud);
 						}
                     );
                 }
 
-                if ($action instanceof JsModal) {
+                if ($action instanceof JsModal || $action instanceof ExecutorInterface) {
                     $crud->addActionButton(
 						$seed
 						, $action
+						, $confirmation
                     );
                 }
 
