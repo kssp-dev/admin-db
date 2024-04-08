@@ -14,7 +14,7 @@ $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 $crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['enabled', 'name', 'uid', 'updated']
+			'displayFields' => ['id', 'enabled', 'name', 'uid', 'updated']
 			, 'addFields' => ['enabled', 'instance_id', 'name', 'uid']
 			, 'editFields' => ['enabled', 'instance_id', 'name']
 			, 'ipp' => 14
