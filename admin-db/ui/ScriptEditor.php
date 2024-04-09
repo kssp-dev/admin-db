@@ -9,8 +9,10 @@ class ScriptEditor extends Atk4\Ui\Js\JsModal {
 		
 		$form = Atk4\Ui\Form::addTo($vp);
 		$form->setModel($entity, ['script']);
-		$form->getControl('script')->rows = 30;
-		$form->getControl('script')->caption = $entity->get('name');
+		$control = $form->getControl('script');
+		$control->rows = 30;
+		$control->caption = $entity->get('name');
+		$control->setInputAttr('style', 'font-family: monospace; font-weight: bold;');
 		
 		$form->onSubmit(function (Atk4\Ui\Form $form) {
 			$form->model->save();

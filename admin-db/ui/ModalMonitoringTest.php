@@ -49,7 +49,7 @@ class ModalMonitoringTest extends ModalLoader {
 				$res = exec($cmd, $output, $code);
 				
 				
-				$p->addHeader($targetModel->get('name'), 3);
+				$p->addHeader($targetModel->get('script_name') . ' [ ' . $targetModel->get('name') . ' ]', 3);
 				
 				$p->addHeader('Metrics Added', 4);
 				

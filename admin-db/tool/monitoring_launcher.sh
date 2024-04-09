@@ -326,7 +326,7 @@ then
 	
 	echo --- Target $target_id ---
 	
-	sql="SELECT target, uid, name FROM $db_table_targets WHERE id = $target_id"
+	sql="SELECT uid, name, target FROM $db_table_targets WHERE id = $target_id"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
@@ -334,11 +334,11 @@ then
 	echo $sql
 	if [ -z "$sql" ]; then exit $code; fi
 	
-	target="${sql%% | *}"
+	export target_uid="$script_uid${id_delimeter}${sql%% | *}"
 	sql="${sql#* | }"
-	export target_uid="$script_uid${id_delimeter}${sql%% *}"
-	export target_short_name="${sql##* | }"
+	export target_short_name="${sql%% | *}"
 	export target_name="$script_name [$target_short_name]"
+	target="${sql##* | }"
 	
 	echo $target - target
 	echo $target_uid - target uid

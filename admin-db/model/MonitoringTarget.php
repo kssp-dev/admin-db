@@ -26,7 +26,8 @@ class MonitoringTarget extends EmptyNullModel {
 			'required' => true,
 			'model' => new MonitoringScript($this->getPersistence())
 		])->addFields([
-			'script_uid' => 'uid'
+			'script_uid' => 'uid',
+			'script_name' => 'name'
 		]);
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
