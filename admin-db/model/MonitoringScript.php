@@ -19,7 +19,12 @@ class MonitoringScript extends Atk4\Data\Model {
         
         $this->getField('id')->neverSave = true;
 		
-		$this->hasOne('instance_id', ['required' => true, 'model' => new MonitoringInstance($this->getPersistence())]);
+		$this->hasOne('instance_id', [
+			'required' => true,
+			'model' => new MonitoringInstance($this->getPersistence())
+		])->addFields([
+			'instance'
+		]);
         
 		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_SAVE, function (\Atk4\Data\Model $m) {
 			$m->set('updated', new DateTime());

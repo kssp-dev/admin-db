@@ -16,13 +16,18 @@ class MonitoringTarget extends EmptyNullModel {
 			  'name' => ['required' => true],
 			  'uid' => ['required' => true],
 			  'period' => ['type' => 'integer', 'required' => true],
-			  'target' => ['required' => true],
+			  'target' => ['nullable' => false],
 			  'script_data' => ['type' => 'text']
         ]);
         
         $this->getField('id')->neverSave = true;
 		
-		$this->hasOne('script_id', ['required' => true, 'model' => new MonitoringScript($this->getPersistence())]);
+		$this->hasOne('script_id', [
+			'required' => true,
+			'model' => new MonitoringScript($this->getPersistence())
+		])->addFields([
+			'script_uid' => 'uid'
+		]);
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
 			$m = clone $this->getModel();
