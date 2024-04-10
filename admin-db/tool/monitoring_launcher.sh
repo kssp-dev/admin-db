@@ -270,6 +270,11 @@ then
 			echo --- PHP script $script_id ---
 			
 			echo php '"'$script_path'"' '"$1"' >> "$runner_path"
+		elif [[ "$line" =~ ^#!\/.+\/perl\s*$ ]]
+		then
+			echo --- Perl script $script_id ---
+			
+			echo perl '"'$script_path'"' '"$1"' >> "$runner_path"
 		else
 			echo "Unknown script format $script_id"
 			cat "$script_path"
