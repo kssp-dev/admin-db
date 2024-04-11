@@ -7,7 +7,14 @@ require_once __DIR__ . '/../app.php';
 $model = new MonitoringTarget($app->db);
 $model->setOrder('name');
 
-$model->getUserAction('delete')->confirmation = true;
+$action = $model->getUserAction('delete');
+$action->preview = static function (\Atk4\Data\Model $entity) {
+		$entity->assertIsEntity();
+				
+		return 'You are about to delete:<br><br>'
+			. $entity->countSeries() . ' series rows<br>'
+			. $entity->countLogs() . ' log rows';
+	};
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 

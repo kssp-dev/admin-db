@@ -53,7 +53,35 @@ class MonitoringScript extends \Atk4\Data\Model {
 				$this->set('script', '');
 			}
 		});
+
+		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_DELETE, function (\Atk4\Data\Model $entity) {
+			$entity->assertIsEntity();
+			$entity->deleteTargets();
+		});
     }
+    
+    public function deleteTargets() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$target = new MonitoringTarget($app->db);
+		$target->addCondition('script_id', $this->get('id'));
+		
+		$count = 0;
+		
+		foreach ($target as $id => $ent) {
+			$ent->deleteLogs();
+			$ent->deleteSeries();
+		}
+		
+		$delete = $app->db->initQuery($target);
+		$delete->mode('delete');
+		$delete->where('script_id', $this->get('id'));
+		$count += $delete->executeStatement();
+		
+		return $count . ' targets of script "' . $this->get('name') . '" were deleted';
+	}
     
     public function deleteSeries() {
 		$this->assertIsEntity();
@@ -76,6 +104,75 @@ class MonitoringScript extends \Atk4\Data\Model {
 		
 		return $count . ' series rows of script "' . $this->get('name') . '" were deleted';
 	}
+    
+    public function deleteLogs() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$target = new MonitoringTarget($app->db);
+		$target->addCondition('script_id', $this->get('id'));
+		
+		$log = new MonitoringLog($app->db);
+		
+		$count = 0;
+		
+		foreach ($target as $id => $ent) {
+			$delete = $app->db->initQuery($log);
+			$delete->mode('delete');
+			$delete->where('target_id', $ent->get('id'));
+			$count += $delete->executeStatement();
+		}					
+		
+		return $count . ' log rows of script "' . $this->get('name') . '" were deleted';
+	}
+    
+    public function countTargets() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$model = new MonitoringTarget($app->db);
+		$model->addCondition('script_id', $this->get('id'));
+		$count = $model->executeCountQuery();
+		
+		return $count;
+	}
+    
+    public function countSeries() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$target = new MonitoringTarget($app->db);
+		$target->addCondition('script_id', $this->get('id'));
+		
+		$count = 0;
+		
+		foreach ($target as $id => $ent) {
+			$count += $ent->countSeries();
+		}	
+		
+		return $count;
+	}
+    
+    public function countLogs() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$target = new MonitoringTarget($app->db);
+		$target->addCondition('script_id', $this->get('id'));
+		
+		$count = 0;
+		
+		foreach ($target as $id => $ent) {
+			$count += $ent->countLogs();
+		}	
+		
+		return $count;
+	}
+	
 }
 
 ?>

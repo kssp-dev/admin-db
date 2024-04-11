@@ -63,6 +63,12 @@ class MonitoringTarget extends EmptyNullModel {
 				return ['target' => 'Must have unique target'];
 			}
 		});
+
+		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_DELETE, function (\Atk4\Data\Model $entity) {
+			$entity->assertIsEntity();
+			$entity->deleteLogs();
+			$entity->deleteSeries();
+		});
     }
     
     public function deleteSeries() {
@@ -77,6 +83,44 @@ class MonitoringTarget extends EmptyNullModel {
 		
 		return $count . ' series rows of target "' . $this->get('name') . '" were deleted';
 	}
+    
+    public function deleteLogs() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$delete = $app->db->initQuery(new MonitoringLog($app->db));
+		$delete->mode('delete');
+		$delete->where('target_id', $this->get('id'));
+		$count = $delete->executeStatement();
+		
+		return $count . ' log rows of target "' . $this->get('name') . '" were deleted';
+	}
+    
+    public function countSeries() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$model = new MonitoringSeries($app->db);
+		$model->addCondition('target_id', $this->get('id'));
+		$count = $model->executeCountQuery();
+		
+		return $count;
+	}
+    
+    public function countLogs() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$model = new MonitoringLog($app->db);
+		$model->addCondition('target_id', $this->get('id'));
+		$count = $model->executeCountQuery();
+		
+		return $count;
+	}
+	
 }
 
 ?>
