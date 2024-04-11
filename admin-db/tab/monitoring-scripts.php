@@ -11,10 +11,12 @@ $action = $model->getUserAction('delete');
 $action->preview = static function (\Atk4\Data\Model $entity) {
 		$entity->assertIsEntity();
 				
-		return 'You are about to delete:<br><br>'
+		return '<span class="ui large red text">'
+			. 'You are about to delete:<br><br>'
 			. $entity->countTargets() . ' targets<br>'
 			. $entity->countSeries() . ' series rows<br>'
-			. $entity->countLogs() . ' log rows';
+			. $entity->countLogs() . ' log rows'
+			. '</span>';
 	};
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
