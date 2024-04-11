@@ -62,8 +62,21 @@ class MonitoringTarget extends EmptyNullModel {
 			if ($m != null && $m->get('id') != $this->get('id')) {
 				return ['target' => 'Must have unique target'];
 			}
-		});	
+		});
     }
+    
+    public function deleteSeries() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$delete = $app->db->initQuery(new MonitoringSeries($app->db));
+		$delete->mode('delete');
+		$delete->where('target_id', $this->get('id'));
+		$count = $delete->executeStatement();
+		
+		return $count . ' series rows of target "' . $this->get('name') . '" were deleted';
+	}
 }
 
 ?>

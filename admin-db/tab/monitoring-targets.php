@@ -25,7 +25,7 @@ $crudOptions = [
 	, 'columnActions' => [
 		'Clone Target' => [
 			'icon' => 'clone outline',
-			'action' => function ($p, $entity, $crud) {
+			'modal' => function ($p, $entity, $crud) {
 				new ModalCloner($entity, $p, $crud, ['name', 'uid', 'target']);
 			}
 		]
@@ -33,7 +33,7 @@ $crudOptions = [
 			'icon' => 'running',
 			'caption' => 'Test',
 			'ui' => 'basic green button',
-			'action' => function ($p, $entity) {
+			'modal' => function ($p, $entity) {
 				new ModalMonitoringTest($entity, $p);
 			}
 		]
@@ -41,8 +41,9 @@ $crudOptions = [
 			'icon' => 'trash',
 			'caption' => 'Series',
 			'ui' => 'basic orange button',
-			'action' => function ($p, $entity) {
-				new ModalMonitoringDeleteSeries($entity, $p);
+			'confirmation' => 'Are you sure to delete all series of the target?',
+			'action' => function (\Atk4\Data\Model $entity) {
+				return new \Atk4\Ui\Js\JsToast($entity->deleteSeries());
 			}
 		]
 	]

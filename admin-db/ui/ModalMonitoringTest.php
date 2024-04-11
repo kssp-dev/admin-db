@@ -70,12 +70,14 @@ class ModalMonitoringTest extends ModalLoader {
 				
 				if ($logEntity && $logEntity->isEntity()) {
 					$p->addHeader('Script Log', 4);					
-					$p->addTextarea($logEntity->get('output'));
+					$p->addTextarea($logEntity->get('output'))
+						->setInputAttr('style', 'font-family: monospace;');
 				}
 					
 				
 				$p->addHeader('Laucher Log', 4);								
-				$p->addTextarea($output);
+				$p->addTextarea($output)
+					->setInputAttr('style', 'font-family: monospace;');
 				
 				$p->addCloseButton($app);
 			}

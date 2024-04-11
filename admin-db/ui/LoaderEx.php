@@ -12,15 +12,20 @@ class LoaderEx extends Atk4\Ui\Loader {
     }
 	
 	function addTextarea($output) {
+		$text = is_array($output) ? implode("\n", $output) : strval($output);
+		$rows = min(14, substr_count($text, "\n") + 1);
+		
 		$segment = Atk4\Ui\View::addTo($this, ['ui' => 'form']);
 		
-		Atk4\Ui\Form\Control\Textarea::addTo($segment, [[
+		$control = Atk4\Ui\Form\Control\Textarea::addTo($segment, [[
 			'ui' => 'fluid'
 			, 'readOnly' => true
-			, 'rows' => 14
-		]])->set(is_array($output) ? implode("\n", $output) : strval($output));
+			, 'rows' => $rows
+		]])->set($text);
 		
 		Atk4\Ui\View::addTo($this, ['ui' => 'hidden divider']);
+		
+		return $control;
     }
 	
 	function addMessage($caption, $output, $type) {

@@ -1,6 +1,6 @@
 <?php
 
-class MonitoringScript extends Atk4\Data\Model {
+class MonitoringScript extends \Atk4\Data\Model {
     public $table = 'monitoring.scripts';
 
     protected function init(): void
@@ -54,6 +54,28 @@ class MonitoringScript extends Atk4\Data\Model {
 			}
 		});
     }
+    
+    public function deleteSeries() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$target = new MonitoringTarget($app->db);
+		$target->addCondition('script_id', $this->get('id'));
+		
+		$series = new MonitoringSeries($app->db);
+		
+		$count = 0;
+		
+		foreach ($target as $id => $ent) {
+			$delete = $app->db->initQuery($series);
+			$delete->mode('delete');
+			$delete->where('target_id', $ent->get('id'));
+			$count += $delete->executeStatement();
+		}					
+		
+		return $count . ' series rows of script "' . $this->get('name') . '" were deleted';
+	}
 }
 
 ?>

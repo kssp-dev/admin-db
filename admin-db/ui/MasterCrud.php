@@ -333,42 +333,57 @@ class MasterCrud extends View
             foreach ($ca as $key => $action) {
 				$seed = [];
 				$confirmation = '';
+				$modal = null;
                 if (is_numeric($key)) {
                     $key = $action;
                 }
                 if (is_array($action)) {
 					$seed = $action;
-					if (!empty($action[0])) {
-						$key = $action[0];
+					$action = null;
+					if (!empty($seed[0])) {
+						$key = $seed[0];
 					}
-					if (!empty($action['caption'])) {
-						$seed[0] = $action['caption'];
-						$seed['caption'] = null;
+					if (!empty($seed['caption'])) {
+						$seed[0] = $seed['caption'];
+						unset($seed['caption']);
 					}
-					if (!empty($action['confirmation'])) {
-						$confirmation = $action['confirmation'];
-						$seed['confirmation'] = null;
+					if (!empty($seed['confirmation'])) {
+						$confirmation = $seed['confirmation'];
+						unset($seed['confirmation']);
 					}
-					if (isset($action['action'])) {
-						$action = $action['action'];
-						$seed['action'] = null;
+					if (isset($seed['modal'])) {
+						$modal = $seed['modal'];
+						unset($seed['modal']);
+					}
+					if (isset($seed['action'])) {
+						$action = $seed['action'];
+						unset($seed['action']);
 					}
                 }
 
-                if (is_string($action)) {
+                if (is_string($modal)) {
                     $crud->addModalAction($seed, $key,
-						static function ($p, $id) use ($action, $crud) {
-							$p->add(new MethodExecutor($crud->model->load($id), $action));
+						static function ($p, $id) use ($modal, $crud) {
+							$p->add(new MethodExecutor($crud->model->load($id), $modal));
+						}
+                    );
+                }
+
+                if ($modal instanceof \Closure) {
+                    $crud->addModalAction($seed, $key,
+						static function ($p, $id) use ($modal, $crud) {
+							return $modal($p, $crud->model->load($id), $crud);
 						}
                     );
                 }
 
                 if ($action instanceof \Closure) {
-                    $crud->addModalAction($seed, $key,
-						static function ($p, $id) use ($action, $crud) {
-							$action($p, $crud->model->load($id), $crud);
+					$crud->addActionButton($seed,
+						static function (\Atk4\Ui\Js\Jquery $j, $id) use ($action, $crud) {
+							return $action($crud->model->load($id), $crud);
 						}
-                    );
+						, $confirmation
+					);
                 }
 
                 if ($action instanceof JsModal || $action instanceof ExecutorInterface) {
@@ -378,6 +393,16 @@ class MasterCrud extends View
 						, $confirmation
                     );
                 }
+
+                if ($action instanceof \Atk4\Data\Model\UserAction) {
+                    $button = $crud->addExecutorButton(
+						$crud->getExecutorFactory()->createExecutor($action, $crud)
+                    );
+                    $seed['content'] = $seed[0];
+                    unset($seed[0]);
+                    $button->setDefaults($seed);
+                }
+
 
                 //if (is_string($action)) {
                 //    $label = ['icon' => $action];

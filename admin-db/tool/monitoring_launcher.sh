@@ -219,7 +219,8 @@ fi
 
 if [ -n "$script_id" ] && [ -n "$target_ids" ] && [ -z "$target_id" ]
 then
-	echo === STAGE 3 ===	
+	echo === STAGE 3 ===
+	echo $(date +%T.%N)
 	
 	temp_dir=$(mktemp -d)
 	if [ ! -d "$temp_dir" ]
@@ -259,33 +260,39 @@ then
 		then
 			echo --- Bash script $script_id ---
 			
-			echo bash '"'$script_path'"' '"$1"' >> "$runner_path"
+			echo bash '"'$script_path'"' '"$1"' '"$2"
+			' >> "$runner_path"
 		elif [[ "$line" =~ ^#!\/\S+\s+python.*$ ]]
 		then
 			echo --- Python script $script_id ---
 			
-			echo python '"'$script_path'"' '"$1"' >> "$runner_path"
+			echo python '"'$script_path'"' '"$1"' '"$2"
+			' >> "$runner_path"
 		elif [[ "$line" =~ ^\<\?php\s*$ ]]
 		then
 			echo --- PHP script $script_id ---
 			
-			echo php '"'$script_path'"' '"$1"' >> "$runner_path"
+			echo php '"'$script_path'"' '"$1"' '"$2"
+			' >> "$runner_path"
 		elif [[ "$line" =~ ^#!\/.+\/perl\s*$ ]]
 		then
 			echo --- Perl script $script_id ---
 			
-			echo perl '"'$script_path'"' '"$1"' >> "$runner_path"
+			echo perl '"'$script_path'"' '"$1"' '"$2"
+			' >> "$runner_path"
 		else
 			echo "Unknown script format $script_id"
 			cat "$script_path"
 			code=203
 		fi
 		
-		echo exit '$?' >> "$runner_path"
+		echo 'exit $?' >> "$runner_path"
 	fi
 	
 	if [ $code == 0 ]
 	then
+		cat "$runner_path"
+		
 		for id in $target_ids
 		do	
 			echo --- Start target $id ---
@@ -300,6 +307,8 @@ then
 		
 		rm -r "$temp_dir"
 	fi
+	
+	echo $(date +%T.%N)
 	
 	exit $code
 fi
@@ -352,35 +361,49 @@ then
 	
 	echo --- Write data file ---
 	
+	data_path="$temp_dir/data.$target_id"
+	
 	sql="SELECT script_data FROM $db_table_targets WHERE id = $target_id AND script_data IS NOT NULL"
 	echo $sql
-	$sql_cmd "$sql" | sed -e 's/^\s//' -e 's/\s*+$//' > "$temp_dir/data"
-	#cat "$temp_dir/data"
+	$sql_cmd "$sql" | sed -e 's/^\s//' -e 's/\s*+$//' > "$data_path"
+	#cat "$data_path"
 	
-	echo --- Out path ---
+	echo --- Execute script ---
 	
-	out_path="$temp_dir/script.$target_id.out"
+	out_path="$temp_dir/out.$target_id"
 	touch "$out_path"
 	
+	ls -l "$temp_dir"
 	
-	if [ -n "$MONITORING_USER" ]
+	sudo_user="$MONITORING_USER"
+	
+	if [ "$(whoami)" == "$MONITORING_USER" ]
 	then
-		echo --- Exec by user $MONITORING_USER ---
+		sudo_user=""
+	fi
 	
-		sudo -u "$MONITORING_USER" bash "$temp_dir/script.sh" "$target" 2>&1 > "$out_path"
+	if [ -n "$sudo_user" ]
+	then
+		echo --- Exec by sudo user $sudo_user ---
+		echo $(date +%T.%N)
+	
+		sudo -u "$sudo_user" bash "$temp_dir/script.sh" "$target" "$data_path" 2>&1 > "$out_path"
 		script_code=$?
 	else
-		echo --- Exec by user $(whoami) ---
+		echo --- Exec by current user $(whoami) ---
+		echo $(date +%T.%N)
 	
-		bash "$temp_dir/script.sh" "$target" 2>&1 > "$out_path"
+		bash "$temp_dir/script.sh" "$target" "$data_path" 2>&1 > "$out_path"
 		script_code=$?
 	fi
+	
+	echo $(date +%T.%N)
 	
 	
 	echo --- Write log ---
 		
 	sql="INSERT INTO $db_table_log (target_id, code, output) VALUES ($target_id, $script_code, '$(cat "$out_path")')"
-	echo $sql
+	#echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	if [ $code != 0 ]; then exit $code; fi
@@ -391,7 +414,7 @@ then
 	then
 		metrics=( "$script_code#monitoring-script-error#" )
 	else
-		echo --- Check metrics ---
+		echo --- Load metrics ---
 		
 		mapfile -t metrics < <( sed -n -E '/METRIC#.+#METRIC/p' "$out_path" | sed -e 's/.*METRIC#//' -e 's/#METRIC.*/#/' )
 	fi
@@ -524,7 +547,7 @@ then
 			
 			echo --- Add series row of $series_uid ---
 				
-			sql="INSERT INTO $db_table_series (target_id, uid, is_alert, value, repetition, name, short_name, description) VALUES ($target_id, '$series_uid', $is_alert, '$value', '$repetition', '$series_name', '$series_short_name', $series_description)"
+			sql="INSERT INTO $db_table_series (target_id, uid, is_alert, value, repetition, name, short_name, description) VALUES ($target_id, '$series_uid', $is_alert, $value, $repetition, '$series_name', '$series_short_name', $series_description)"
 			echo $sql
 			sql=$($sql_cmd "$sql")
 			code=$?

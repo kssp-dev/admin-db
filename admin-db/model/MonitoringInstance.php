@@ -1,6 +1,6 @@
 <?php
 
-class MonitoringInstance extends Atk4\Data\Model {
+class MonitoringInstance extends \Atk4\Data\Model {
     public $table = 'monitoring.instances';
 
     protected function init(): void
