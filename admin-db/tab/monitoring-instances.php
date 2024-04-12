@@ -8,6 +8,9 @@ $model = new MonitoringInstance($app->db);
 $model->setOrder('name');
 
 $model->getUserAction('delete')->confirmation = true;
+$model->getUserAction('delete')->enabled = static function (\Atk4\Data\Model $entity) {
+		return $entity->countScripts() === 0;
+	};
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 

@@ -38,6 +38,18 @@ class MonitoringInstance extends \Atk4\Data\Model {
 			}
 		});
     }
+    
+    public function countScripts() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$model = new MonitoringScript($app->db);
+		$model->addCondition('instance_id', $this->get('id'));
+		$count = $model->executeCountQuery();
+		
+		return $count;
+	}
 }
 
 ?>
