@@ -373,6 +373,7 @@ then
 	out_path="$temp_dir/out.$target_id"
 	touch "$out_path"
 	
+	chmod -R 777 "$temp_dir/"
 	ls -l "$temp_dir"
 	
 	sudo_user="$MONITORING_USER"
@@ -384,10 +385,10 @@ then
 	
 	if [ -n "$sudo_user" ]
 	then
-		echo --- Exec by sudo user $sudo_user ---
+		echo --- Exec by sudo user $sudo_user ---		
 		echo $(date +%T.%N)
 	
-		sudo -u "$sudo_user" bash "$temp_dir/script.sh" "$target" "$data_path" 2>&1 > "$out_path"
+		sudo -E -u "$sudo_user" bash "$temp_dir/script.sh" "$target" "$data_path" 2>&1 > "$out_path"
 		script_code=$?
 	else
 		echo --- Exec by current user $(whoami) ---
