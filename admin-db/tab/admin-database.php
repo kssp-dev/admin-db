@@ -5,7 +5,7 @@ $title = 'Database Administration';
 require_once __DIR__ . '/../app.php';
 
 
-Atk4\Ui\Button::addTo($app, [
+\Atk4\Ui\Button::addTo($app, [
 	'Download database remove structure script'
 	, 'icon' => 'eraser'
 ])
@@ -13,7 +13,7 @@ Atk4\Ui\Button::addTo($app, [
 ->on('click', $app->jsRedirect($app_uri . 'tool/drop.sql', false));
 
 if (file_exists($app_dir . '../composer.phar')) {
-	Atk4\Ui\Button::addTo($app, [
+	\Atk4\Ui\Button::addTo($app, [
 		'Recreate database structure'
 		, 'icon' => 'snowplow'
 	])
@@ -56,16 +56,16 @@ if (file_exists($app_dir . '../composer.phar')) {
 	);
 }
 
-Atk4\Ui\View::addTo($app, ['ui' => 'hidden divider']);
+\Atk4\Ui\View::addTo($app, ['ui' => 'hidden divider']);
 
-Atk4\Ui\Button::addTo($app, [
+\Atk4\Ui\Button::addTo($app, [
 	'Download database update script'
 	, 'icon' => 'database'
 ])
 ->addClass('big blue button')
 ->on('click', $app->jsRedirect($app_uri . 'tool/create.sql', false));
 
-Atk4\Ui\Button::addTo($app, [
+\Atk4\Ui\Button::addTo($app, [
 	'Update database structure'
 	, 'icon' => 'forward'
 ])

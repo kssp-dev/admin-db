@@ -1,14 +1,14 @@
 <?php
 
-class ModalCloner extends Atk4\Ui\Js\JsModal {
+class ModalCloner extends \Atk4\Ui\Js\JsModal {
 
-    function __construct(Atk4\Data\Model $entity, Atk4\Ui\View $vp, Atk4\Ui\View $table, ?array $fields = null) {
+    function __construct(\Atk4\Data\Model $entity, \Atk4\Ui\View $vp, \Atk4\Ui\View $table, ?array $fields = null) {
 		$entity->assertIsEntity();
 		
-		$form = Atk4\Ui\Form::addTo($vp);
+		$form = \Atk4\Ui\Form::addTo($vp);
 		$form->setModel($entity, $fields);
 		
-		$form->onSubmit(function (Atk4\Ui\Form $form) use ($table) {
+		$form->onSubmit(function (\Atk4\Ui\Form $form) use ($table) {
 			$row =[];
 					
 			foreach ($form->model->getFields() as $key=>$field) {
@@ -24,7 +24,7 @@ class ModalCloner extends Atk4\Ui\Js\JsModal {
 			
 			return new \Atk4\Ui\Js\JsBlock([
 				$table->jsReload(),
-				new Atk4\Ui\Js\JsToast('Saved successfully!')
+				new \Atk4\Ui\Js\JsToast('Saved successfully!')
 			]);
 		});
 		

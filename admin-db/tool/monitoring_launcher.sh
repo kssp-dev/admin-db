@@ -373,15 +373,19 @@ then
 	out_path="$temp_dir/out.$target_id"
 	touch "$out_path"
 	
-	chmod -R 777 "$temp_dir/"
-	ls -l "$temp_dir"
-	
 	sudo_user="$MONITORING_USER"
 	
 	if [ "$(whoami)" == "$MONITORING_USER" ]
 	then
 		sudo_user=""
 	fi
+		
+	if [ -n "$sudo_user" ]
+	then
+		chmod -R 777 "$temp_dir/"
+	fi
+	
+	ls -l "$temp_dir"
 	
 	if [ -n "$sudo_user" ]
 	then

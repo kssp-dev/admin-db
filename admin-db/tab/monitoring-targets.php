@@ -35,7 +35,7 @@ $crudOptions = [
 		'Clone Target' => [
 			'icon' => 'clone outline',
 			'modal' => function ($p, $entity, $crud) {
-				new ModalCloner($entity, $p, $crud, ['name', 'uid', 'target']);
+				new ModalCloner($entity, $p, $crud, ['name', 'uid', 'target', 'script_id']);
 			}
 		]
 		, 'Monitoring Test' => [
