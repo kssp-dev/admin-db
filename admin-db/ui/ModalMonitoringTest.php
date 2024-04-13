@@ -58,7 +58,7 @@ class ModalMonitoringTest extends ModalLoader {
 					$seriesModel->addCondition('time', '>', $seriesEntity->get('time'));
 				}
 				
-				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'repetition', 'uid', 'name']);
+				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'repetition', 'uid', 'name', 'description']);
 				
 								
 				if ($logEntity && $logEntity->isEntity()) {
