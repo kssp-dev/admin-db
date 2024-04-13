@@ -5,7 +5,7 @@ $title = 'Site Administration';
 require_once __DIR__ . '/../app.php';
 
 
-Atk4\Ui\Button::addTo($app, [
+\Atk4\Ui\Button::addTo($app, [
 	'Update the site'
 	, 'icon' => 'download'
 ])
@@ -50,5 +50,11 @@ Atk4\Ui\Button::addTo($app, [
 		}
 	)
 );
+
+\Atk4\Ui\Header::addTo($app, ['_SERVER']);
+\Atk4\Ui\View::addTo($app, ['ui' => 'segment', 'class.raised' => true, 'element' => 'pre'])->set(print_r($_SERVER, true));
+
+\Atk4\Ui\Header::addTo($app, ['Environment']);
+\Atk4\Ui\View::addTo($app, ['ui' => 'segment', 'class.raised' => true, 'element' => 'pre'])->set(print_r(getenv(), true));
 
 ?>
