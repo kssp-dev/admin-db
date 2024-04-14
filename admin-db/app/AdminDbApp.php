@@ -16,12 +16,7 @@ class AdminDbApp extends \Atk4\Ui\App {
         
         $this->db = \Atk4\Data\Persistence::connect($db_dsn, $db_user, $db_psw);
         
-        $this->uiPersistence = new Atk4\Ui\Persistence\Ui();
-		$this->uiPersistence->dateFormat = 'Y-m-d';
-		$this->uiPersistence->datetimeFormat = 'Y-m-d H-i-s';
-		$this->uiPersistence->timezone = 'UTC';
-		
-		//error_log(print_r("uiPersistence " . print_r($this->uiPersistence, true), true));
+        $this->uiPersistence = new UiPersistence();
        
         $this->initLayout([\Atk4\Ui\Layout\Maestro::class]);
 		
@@ -29,12 +24,12 @@ class AdminDbApp extends \Atk4\Ui\App {
 		
 		$item = $this->layout->menu->addItem()->addClass('aligned right');
 		
-		Atk4\Ui\Button::addTo($item, [
+		\Atk4\Ui\Button::addTo($item, [
 			'icon' => 'home'
 			, 'class.circular' => true
 		])	->on('click', $this->jsRedirect($app_uri . '..', false));
 		
-		Atk4\Ui\Button::addTo($item, [
+		\Atk4\Ui\Button::addTo($item, [
 			'icon' => 'clone outline'
 			, 'class.circular' => true
 		])	->on('click', $this->jsRedirect($tab_uri, true));

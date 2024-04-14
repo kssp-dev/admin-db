@@ -51,6 +51,11 @@ require_once __DIR__ . '/../app.php';
 	)
 );
 
+if (file_exists($app_dir . '../composer.phar')) {
+	\Atk4\Ui\Header::addTo($app, ['Application']);
+	\Atk4\Ui\View::addTo($app, ['ui' => 'segment', 'class.raised' => true, 'element' => 'pre'])->set(print_r($app->uiPersistence, true));
+}
+
 \Atk4\Ui\Header::addTo($app, ['_SERVER']);
 \Atk4\Ui\View::addTo($app, ['ui' => 'segment', 'class.raised' => true, 'element' => 'pre'])->set(print_r($_SERVER, true));
 
