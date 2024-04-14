@@ -43,8 +43,8 @@ $crudOptions = [
 			'icon' => 'file medical alternate',
 			'caption' => 'Script',
 			'ui' => 'basic blue button',
-			'modal' => function ($p, $entity) {
-				new ScriptEditor($entity, $p);
+			'modal' => function ($p, $entity, $crud) {
+				new ScriptEditor($entity, $p, $crud);
 			}
 		]
 		, 'Remove Series' => [
