@@ -51,18 +51,15 @@ class ModalMonitoringTest extends ModalLoader {
 				
 				$p->addHeader($targetModel->get('script_name') . ' [ ' . $targetModel->get('name') . ' ]', 3);
 				
-				$p->addHeader('Metrics Added', 4);
-				
 				if ($seriesEntity && $seriesEntity->isEntity()) {
-					$seriesModel = clone $seriesEntity->getModel();
 					$seriesModel->addCondition('time', '>', $seriesEntity->get('time'));
 				}
 				
+				$p->addHeader($seriesModel->executeCountQuery() . ' Metrics Added', 4);
 				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'repetition', 'uid', 'name', 'description']);
 				
 								
 				if ($logEntity && $logEntity->isEntity()) {
-					$logModel = clone $logEntity->getModel();
 					$logModel->addCondition('time', '>', $logEntity->get('time'));
 				}
 				

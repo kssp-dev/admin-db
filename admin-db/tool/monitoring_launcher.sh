@@ -365,6 +365,7 @@ then
 	
 	sql="SELECT script_data FROM $db_table_targets WHERE id = $target_id AND script_data IS NOT NULL"
 	echo $sql
+	echo $data_path
 	$sql_cmd "$sql" | sed -e 's/^\s//' -e 's/\s*+$//' > "$data_path"
 	#cat "$data_path"
 	
@@ -389,18 +390,20 @@ then
 	
 	if [ -n "$sudo_user" ]
 	then
-		echo --- Exec by sudo user $sudo_user ---		
-		echo $(date +%T.%N)
+		echo --- Exec by sudo user $sudo_user ---
 	
-		sudo -E -u "$sudo_user" bash "$temp_dir/script.sh" "$target" "$data_path" 2>&1 > "$out_path"
-		script_code=$?
+		cmd='sudo -E -u "'$sudo_user'" bash "'$temp_dir/script.sh'" "'$target'" "'$data_path'"'
 	else
 		echo --- Exec by current user $(whoami) ---
-		echo $(date +%T.%N)
-	
-		bash "$temp_dir/script.sh" "$target" "$data_path" 2>&1 > "$out_path"
-		script_code=$?
+		
+		cmd='bash "'$temp_dir/script.sh'" "'$target'" "'$data_path'"'
 	fi
+	
+	echo $(date +%T.%N)
+	
+	echo $cmd
+	eval $cmd 2>&1 > "$out_path"
+	script_code=$?
 	
 	echo $(date +%T.%N)
 	
@@ -408,7 +411,6 @@ then
 	echo --- Write log ---
 		
 	sql="INSERT INTO $db_table_log (target_id, code, output) VALUES ($target_id, $script_code, '$(cat "$out_path")')"
-	#echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	if [ $code != 0 ]; then exit $code; fi
