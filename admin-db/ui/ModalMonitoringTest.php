@@ -72,7 +72,7 @@ class ModalMonitoringTest extends ModalLoader {
 				}
 					
 				
-				$p->addHeader('Laucher Log', 4);								
+				$p->addHeader('Launcher Log', 4);								
 				$p->addTextarea($output)
 					->setInputAttr('style', 'font-family: monospace;');
 				

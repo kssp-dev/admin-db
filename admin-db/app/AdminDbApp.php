@@ -38,7 +38,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 
         $menu = $this->layout->addMenuGroup([
 			'Monitoring'
-			, 'icon'=>'chart bar'
+			, 'icon'=>'chartline'
 		]);
 			$this->layout->addMenuItem([
 				'Alerts'
@@ -64,7 +64,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 				'Instances'
 				, 'icon'=>'server'
 			], [$app_uri . 'tab/monitoring-instances'], $menu);
-		
+		/*
         $menu = $this->layout->addMenuGroup([
 			'Network'
 			, 'icon'=>'sitemap'
@@ -77,7 +77,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 				'Scripts'
 				, 'icon'=>'file medical alternate'
 			], [$app_uri . 'tab/scripts'], $menu);
-        
+        */
         $menu = $this->layout->addMenuGroup([
 			'Administration'
 			, 'icon'=>'tools'
@@ -86,6 +86,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 				'Site'
 				, 'icon'=>'code'
 			], [$app_uri . 'tab/admin-site'], $menu);
+			/*
 			$this->layout->addMenuItem([
 				'Export'
 				, 'icon'=>'file export'
@@ -94,6 +95,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 				'Database'
 				, 'icon'=>'database'
 			], [$app_uri . 'tab/admin-database'], $menu);
+			*/
     }
 }
 
