@@ -143,25 +143,29 @@ CREATE INDEX IF NOT EXISTS "series_is_alert_idx" ON "monitoring"."series" ("is_a
 COMMENT ON TABLE "monitoring"."series" IS 'Time series of metrics and alerts';
 
 
+DROP VIEW IF EXISTS "monitoring"."alerts";
 CREATE OR REPLACE VIEW "monitoring"."alerts" AS
 SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE "is_alert";
 COMMENT ON VIEW "monitoring"."alerts" IS 'Time series of alerts only';
 CREATE OR REPLACE RULE "delete_alerts_rule" AS ON DELETE TO "monitoring"."alerts" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";
 
 
+DROP VIEW IF EXISTS "monitoring"."metrics";
 CREATE OR REPLACE VIEW "monitoring"."metrics" AS
 SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE NOT "is_alert";
 COMMENT ON VIEW "monitoring"."metrics" IS 'Time series of metrics only';
 CREATE OR REPLACE RULE "delete_metrics_rule" AS ON DELETE TO "monitoring"."metrics" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";
 
 
+DROP VIEW IF EXISTS "monitoring"."last_series";
 CREATE OR REPLACE VIEW "monitoring"."last_series" AS
 WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" GROUP BY "uid")
-SELECT "id", "time", "is_alert", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
+SELECT "id", "target_id", "time", "is_alert", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
 COMMENT ON VIEW "monitoring"."last_series" IS 'Last state of every metric or alert';
 CREATE OR REPLACE RULE "delete_last_series_rule" AS ON DELETE TO "monitoring"."last_series" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";
 
 
+DROP VIEW IF EXISTS "monitoring"."last_alerts";
 CREATE OR REPLACE VIEW "monitoring"."last_alerts" AS
 WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE "is_alert" GROUP BY "uid")
 SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
@@ -169,6 +173,7 @@ COMMENT ON VIEW "monitoring"."last_alerts" IS 'Last state of every alert';
 CREATE OR REPLACE RULE "delete_last_alerts_rule" AS ON DELETE TO "monitoring"."last_alerts" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";
 
 
+DROP VIEW IF EXISTS "monitoring"."last_metrics";
 CREATE OR REPLACE VIEW "monitoring"."last_metrics" AS
 WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE NOT "is_alert" GROUP BY "uid")
 SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";

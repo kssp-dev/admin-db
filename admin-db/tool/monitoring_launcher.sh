@@ -75,7 +75,7 @@ then
 	
 	echo --- Get instance id of $MONITORING_INSTANCE ---
 	
-	sql="SELECT id, run_count FROM $db_table_instances WHERE instance = '$MONITORING_INSTANCE' AND enabled"
+	sql="SELECT id, run_count FROM $db_table_instances WHERE instance = '${MONITORING_INSTANCE//\'/\'\'}' AND enabled"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
@@ -256,25 +256,27 @@ then
 		
 		IFS= read -r line < "$script_path"
 		
-		if [[ "$line" =~ ^#!\/.+\/bash\s*$ ]]
+		echo $line
+		
+		if [[ "$line" =~ ^#!\/.+\/bash[[:space:]]*$ ]]
 		then
 			echo --- Bash script $script_id ---
 			
 			echo bash '"'$script_path'"' '"$1"' '"$2"
 			' >> "$runner_path"
-		elif [[ "$line" =~ ^#!\/\S+\s+python.*$ ]]
+		elif [[ "$line" =~ ^#!\/.+[[:space:]]+python.*$ ]]
 		then
 			echo --- Python script $script_id ---
 			
-			echo python '"'$script_path'"' '"$1"' '"$2"
+			echo python3 '"'$script_path'"' '"$1"' '"$2"
 			' >> "$runner_path"
-		elif [[ "$line" =~ ^\<\?php\s*$ ]]
+		elif [[ "$line" =~ ^\<\?php[[:space:]]*$ ]]
 		then
 			echo --- PHP script $script_id ---
 			
 			echo php '"'$script_path'"' '"$1"' '"$2"
 			' >> "$runner_path"
-		elif [[ "$line" =~ ^#!\/.+\/perl\s*$ ]]
+		elif [[ "$line" =~ ^#!\/.+\/perl[[:space:]]*$ ]]
 		then
 			echo --- Perl script $script_id ---
 			
@@ -348,11 +350,14 @@ then
 	echo $sql
 	if [ -z "$sql" ]; then exit $code; fi
 	
-	export target_uid="$script_uid${id_delimeter}${sql%% | *}"
+	target_uid="$script_uid${id_delimeter}${sql%% | *}"
+	export target_uid="${target_uid%"${target_uid##*[![:space:]]}"}"
 	sql="${sql#* | }"
-	export target_short_name="${sql%% | *}"
+	target_short_name="${sql%% | *}"
+	export target_short_name="${target_short_name%"${target_short_name##*[![:space:]]}"}"
 	export target_name="$script_name [$target_short_name]"
 	target="${sql##* | }"
+	target="${target%"${target##*[![:space:]]}"}"
 	
 	echo $target - target
 	echo $target_uid - target uid
@@ -410,9 +415,11 @@ then
 	
 	echo --- Write log ---
 		
-	sql="INSERT INTO $db_table_log (target_id, code, output) VALUES ($target_id, $script_code, '$(cat "$out_path")')"
+	sql="INSERT INTO $db_table_log (target_id, code, output) VALUES ($target_id, $script_code, '$(sed s/\'/\'\'/g "$out_path")')"
+	#echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
+	echo $sql
 	if [ $code != 0 ]; then exit $code; fi
 	
 	echo --- Script exit code $script_code ---
@@ -469,7 +476,7 @@ then
 		then
 			echo --- Get type $type_id ---
 			
-			sql="SELECT is_alert, name, description FROM $db_table_types WHERE uid = '$type_id'"
+			sql="SELECT is_alert, name, description FROM $db_table_types WHERE uid = '${type_id//\'/\'\'}'"
 			echo $sql
 			sql=$($sql_cmd "$sql")
 			code=$?
@@ -513,6 +520,7 @@ then
 			
 			series_uid="$target_uid${id_delimeter}$type_id$object_id"
 			series_uid="${series_uid,,}"
+			series_uid="'${series_uid//\'/\'\'}'"
 			
 			series_description=""
 			if [ -n "$type_description" ]
@@ -538,7 +546,7 @@ then
 			echo --- Increment repetition of $series_uid ---
 	
 			repetition=0
-			sql="SELECT value, repetition FROM $db_table_series WHERE uid = '$series_uid' ORDER BY time DESC LIMIT 1"
+			sql="SELECT value, repetition FROM $db_table_series WHERE uid = $series_uid ORDER BY time DESC LIMIT 1"
 			echo $sql
 			sql=$($sql_cmd "$sql")
 			code=$?
@@ -553,11 +561,12 @@ then
 			echo $repetition
 			
 			echo --- Add series row of $series_uid ---
-				
-			sql="INSERT INTO $db_table_series (target_id, uid, is_alert, value, repetition, name, short_name, description) VALUES ($target_id, '$series_uid', $is_alert, $value, $repetition, '$series_name', '$series_short_name', $series_description)"
-			echo $sql
+			
+			sql="INSERT INTO $db_table_series (target_id, uid, is_alert, value, repetition, name, short_name, description) VALUES ($target_id, $series_uid, $is_alert, $value, $repetition, '${series_name//\'/\'\'}', '${series_short_name//\'/\'\'}', $series_description)"
+			#echo $sql
 			sql=$($sql_cmd "$sql")
 			code=$?
+			echo $sql
 			if [ $code != 0 ]; then exit $code; fi
 		fi
 	done
