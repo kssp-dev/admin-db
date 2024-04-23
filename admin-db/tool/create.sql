@@ -70,10 +70,13 @@ CREATE TABLE IF NOT EXISTS "monitoring"."instances" (
   "id" SERIAL PRIMARY KEY,
   "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
   "instance" VARCHAR(31) NOT NULL UNIQUE,
+  "is_running" BOOLEAN NOT NULL DEFAULT FALSE,
   "run_count" INTEGER NOT NULL DEFAULT 0,
   "name" VARCHAR(63) NOT NULL UNIQUE
 );
 COMMENT ON TABLE "monitoring"."instances" IS 'Monitoring instances list';
+
+ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "is_running" BOOLEAN NOT NULL DEFAULT FALSE;
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."types" (
@@ -81,9 +84,18 @@ CREATE TABLE IF NOT EXISTS "monitoring"."types" (
   "uid" VARCHAR(31) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
   "is_alert" BOOLEAN NOT NULL DEFAULT FALSE,
   "name" VARCHAR(31) NOT NULL UNIQUE,
-  "description" TEXT NULL
+  "description" TEXT NULL,
+  "notification_delay" SMALLINT NOT NULL CHECK ("notification_delay" >= 0),
+  "notification_period" SMALLINT NOT NULL CHECK ("notification_period" >= 0),
+  CHECK ("notification_period" = 0 OR "notification_period" > "notification_delay")
 );
 COMMENT ON TABLE "monitoring"."types" IS 'Types of monitoring';
+
+ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_delay" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_delay" >= 0);
+ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_delay" DROP DEFAULT;
+ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_period" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_period" >= 0);
+ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_period" DROP DEFAULT;
+ALTER TABLE IF EXISTS "monitoring"."types" ADD CHECK ("notification_period" = 0 OR "notification_period" > "notification_delay");
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
@@ -128,57 +140,120 @@ COMMENT ON TABLE "monitoring"."log" IS 'Debug information';
 CREATE TABLE IF NOT EXISTS "monitoring"."series" (
   "id" SERIAL PRIMARY KEY,
   "target_id" INTEGER NOT NULL REFERENCES "monitoring"."targets",
+  "type_id" INTEGER NOT NULL REFERENCES "monitoring"."types",
   "time" TIMESTAMP NOT NULL DEFAULT NOW(),
   "uid" VARCHAR(127) NOT NULL CHECK ("uid" ~ '^[^@#\s]+@[^@#\s]+@[^@#\s]+@?[^@#\s]*$'),
-  "is_alert" BOOLEAN NOT NULL,
   "value" BIGINT NOT NULL,
   "repetition" INTEGER NOT NULL DEFAULT 0,
   "name" VARCHAR(127) NOT NULL,
   "short_name" VARCHAR(63) NOT NULL,
-  "description" TEXT NULL
+  "description" TEXT NULL,
+  "notified" BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE INDEX IF NOT EXISTS "series_time_idx" ON "monitoring"."series" ("time");
 CREATE INDEX IF NOT EXISTS "series_uid_idx" ON "monitoring"."series" ("uid");
 CREATE INDEX IF NOT EXISTS "series_is_alert_idx" ON "monitoring"."series" ("is_alert");
 COMMENT ON TABLE "monitoring"."series" IS 'Time series of metrics and alerts';
 
+ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "type_id" INTEGER NOT NULL REFERENCES "monitoring"."types" DEFAULT 1;
+ALTER TABLE IF EXISTS "monitoring"."series" ALTER COLUMN "type_id" DROP DEFAULT;
+ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "notified" BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE IF EXISTS "monitoring"."series" DROP COLUMN IF EXISTS "is_alert";
+
 
 DROP VIEW IF EXISTS "monitoring"."alerts";
 CREATE OR REPLACE VIEW "monitoring"."alerts" AS
-SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE "is_alert";
+	SELECT "s"."id", "s"."time", "s"."value", "s"."repetition", "s"."uid", "s"."name", "s"."short_name", "s"."description"
+	FROM "monitoring"."series" "s"
+	JOIN "monitoring"."types" "t"
+	ON "t"."id" = "s"."type_id"
+	WHERE "t"."is_alert";
 COMMENT ON VIEW "monitoring"."alerts" IS 'Time series of alerts only';
-CREATE OR REPLACE RULE "delete_alerts_rule" AS ON DELETE TO "monitoring"."alerts" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";
+CREATE OR REPLACE RULE "delete_alerts_rule" AS
+	ON DELETE TO "monitoring"."alerts" DO INSTEAD
+	DELETE FROM "monitoring"."series"
+	WHERE "id" = OLD."id";
 
 
 DROP VIEW IF EXISTS "monitoring"."metrics";
 CREATE OR REPLACE VIEW "monitoring"."metrics" AS
-SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "monitoring"."series" WHERE NOT "is_alert";
+	SELECT "s"."id", "s"."time", "s"."value", "s"."repetition", "s"."uid", "s"."name", "s"."short_name", "s"."description"
+	FROM "monitoring"."series" "s"
+	JOIN "monitoring"."types" "t"
+	ON "t"."id" = "s"."type_id"
+	WHERE NOT "t"."is_alert";
 COMMENT ON VIEW "monitoring"."metrics" IS 'Time series of metrics only';
-CREATE OR REPLACE RULE "delete_metrics_rule" AS ON DELETE TO "monitoring"."metrics" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";
-
-
-DROP VIEW IF EXISTS "monitoring"."last_series";
-CREATE OR REPLACE VIEW "monitoring"."last_series" AS
-WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" GROUP BY "uid")
-SELECT "id", "target_id", "time", "is_alert", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
-COMMENT ON VIEW "monitoring"."last_series" IS 'Last state of every metric or alert';
-CREATE OR REPLACE RULE "delete_last_series_rule" AS ON DELETE TO "monitoring"."last_series" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";
+CREATE OR REPLACE RULE "delete_metrics_rule" AS
+	ON DELETE TO "monitoring"."metrics" DO INSTEAD
+	DELETE FROM "monitoring"."series"
+	WHERE "id" = OLD."id";
 
 
 DROP VIEW IF EXISTS "monitoring"."last_alerts";
 CREATE OR REPLACE VIEW "monitoring"."last_alerts" AS
-WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE "is_alert" GROUP BY "uid")
-SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
+	WITH "w" AS (
+		SELECT MAX("s"."time") "wtime", "s"."uid" "wuid"
+		FROM "monitoring"."series" "s"
+		JOIN "monitoring"."types" "t"
+		ON "t"."id" = "s"."type_id"
+		WHERE "t"."is_alert"
+		GROUP BY "s"."uid"
+	)
+	SELECT "s"."id", "s"."time", "s"."value", "s"."repetition", "s"."uid", "s"."name", "s"."short_name", "s"."description"
+	FROM "w"
+	JOIN "monitoring"."series" "s"
+	ON "s"."time" = "wtime" AND "s"."uid" = "wuid";
 COMMENT ON VIEW "monitoring"."last_alerts" IS 'Last state of every alert';
-CREATE OR REPLACE RULE "delete_last_alerts_rule" AS ON DELETE TO "monitoring"."last_alerts" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";
+CREATE OR REPLACE RULE "delete_last_alerts_rule" AS
+	ON DELETE TO "monitoring"."last_alerts" DO INSTEAD
+	DELETE FROM "monitoring"."series"
+	WHERE "id" = OLD."id";
 
 
 DROP VIEW IF EXISTS "monitoring"."last_metrics";
 CREATE OR REPLACE VIEW "monitoring"."last_metrics" AS
-WITH "s" AS (SELECT MAX("time") "tm", "uid" "ui" FROM "monitoring"."series" WHERE NOT "is_alert" GROUP BY "uid")
-SELECT "id", "time", "value", "repetition", "uid", "name", "short_name", "description" FROM "s" LEFT JOIN "monitoring"."series" ON "time"="tm" and "uid"="ui";
+	WITH "w" AS (
+		SELECT MAX("s"."time") "wtime", "s"."uid" "wuid"
+		FROM "monitoring"."series" "s"
+		JOIN "monitoring"."types" "t"
+		ON "t"."id" = "s"."type_id"
+		WHERE NOT "t"."is_alert"
+		GROUP BY "s"."uid"
+	)
+	SELECT "s"."id", "s"."time", "s"."value", "s"."repetition", "s"."uid", "s"."name", "s"."short_name", "s"."description"
+	FROM "w"
+	JOIN "monitoring"."series" "s"
+	ON "s"."time" = "wtime" AND "s"."uid" = "wuid";
 COMMENT ON VIEW "monitoring"."last_metrics" IS 'Last state of every metric';
-CREATE OR REPLACE RULE "delete_last_metrics_rule" AS ON DELETE TO "monitoring"."last_metrics" DO INSTEAD DELETE FROM "monitoring"."series" WHERE "id" = OLD."id";
+CREATE OR REPLACE RULE "delete_last_metrics_rule" AS
+	ON DELETE TO "monitoring"."last_metrics" DO INSTEAD
+	DELETE FROM "monitoring"."series"
+	WHERE "id" = OLD."id";
+
+
+DROP VIEW IF EXISTS "monitoring"."notifications";
+CREATE OR REPLACE VIEW "monitoring"."notifications" AS
+	WITH "w" AS (
+		SELECT MAX("s"."time") "wtime", "s"."uid" "wuid"
+		FROM "monitoring"."series" "s"
+    	JOIN "monitoring"."types" "t"
+    	ON "t"."id" = "s"."type_id"
+		WHERE "t"."is_alert"
+		GROUP BY "s"."uid"
+	)
+	SELECT "s"."id", "s"."time", "s"."uid", "s"."notified", "s"."repetition", "t"."notification_delay", "t"."notification_period"
+	FROM "w"
+	JOIN "monitoring"."series" "s"
+	ON "s"."time" = "wtime" AND "s"."uid" = "wuid"
+	JOIN "monitoring"."types" "t"
+	ON "t"."id" = "s"."type_id"
+	WHERE NOT "s"."notified";
+COMMENT ON VIEW "monitoring"."notifications" IS 'Notifications are waiting for sending';
+CREATE OR REPLACE RULE "update_notifications_rule" AS
+	ON UPDATE TO "monitoring"."notifications" DO INSTEAD
+	UPDATE "monitoring"."series"
+	SET "notified" = NEW."notified"
+	WHERE "uid" = OLD."uid" AND NOT "notified";
 
 --- END ---
 

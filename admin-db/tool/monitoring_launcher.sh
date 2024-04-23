@@ -3,7 +3,12 @@
 script_dir=$(realpath "$0")
 script_dir=$(dirname "$script_dir")
 
+# notify dir
+
+notify_dir="$script_dir/notify.d"
+
 # database connection
+
 sql_client='psql'
 
 db_table_instances='monitoring.instances'
@@ -12,8 +17,14 @@ db_table_targets='monitoring.targets'
 db_table_types='monitoring.types'
 db_table_log='monitoring.log'
 db_table_series='monitoring.series'
+db_table_notifications='monitoring.notifications'
+
+# unknown type uid
+
+unknown_type_uid='unknown-type'
 
 # parameters
+
 id_delimeter="@"
 param_delimeter=$'\t'
 new_line=$'\n'
@@ -88,7 +99,7 @@ then
 		
 		echo --- Update run count ---
 		
-		sql="UPDATE $db_table_instances SET run_count = $run_count WHERE id = $instance_id"
+		sql="UPDATE $db_table_instances SET run_count = $run_count, is_running = TRUE WHERE id = $instance_id"
 		echo $sql
 		sql=$($sql_cmd "$sql")
 		code=$?
@@ -127,6 +138,50 @@ then
 			if [ $code != 0 ]; then
 				echo SQL DELETE Error $code
 			fi
+
+			echo --- Notify dir ---
+			
+			echo $notify_dir
+
+			if [ -d "$notify_dir" ]
+			then
+				echo --- Notify loop ---
+			
+				while true
+				do
+					sql="SELECT uid FROM $db_table_notifications ORDER BY time ASC LIMIT 1"
+					echo $sql
+					sql=$($sql_cmd "$sql")
+					code=$?
+					if [ -z "$sql" ]
+					then
+						break
+					fi
+					echo $sql
+					uid=$sql
+					
+					sql="UPDATE $db_table_notifications SET notified = TRUE WHERE uid = '$uid' RETURNING id, repetition, notification_delay, notification_period"
+					echo $sql
+					sql=$($sql_cmd "$sql")
+					code=$?
+					echo $sql
+					if [ $code != 0 ]; then
+						break
+					fi
+					
+					break	# test
+					
+					sleep 1
+				done
+			fi
+			
+			echo --- Clear running flag ---
+		
+			sql="UPDATE $db_table_instances SET is_running = FALSE WHERE id = $instance_id"
+			echo $sql
+			sql=$($sql_cmd "$sql")
+			code=$?
+			echo $sql
 		fi
 	fi
 	
@@ -448,7 +503,7 @@ then
 		
 		value=${line%%\#*}
 		line=${line#*\#}
-		type_id=${line%%\#*}
+		type_uid=${line%%\#*}
 		line=${line#*\#}
 		object=${line%%\#*}
 		line=${line#*\#}
@@ -456,8 +511,8 @@ then
 		
 		value="${value//[[:space:]]/}"
 		
-		type_id="${type_id//${id_delimeter}/}"
-		type_id="${type_id//[[:space:]]/}"
+		type_uid="${type_uid//${id_delimeter}/}"
+		type_uid="${type_uid//[[:space:]]/}"
 		
 		object="${object//${id_delimeter}/|}"
 		object="${object#"${object%%[![:space:]]*}"}"
@@ -468,40 +523,65 @@ then
 		description="${description%"${description##*[![:space:]]}"}"
 		
 		echo $value - metric value
-		echo $type_id - type uid
+		echo $type_uid - type uid
 		echo $object - metric object name, optional
 		echo $description - metric description, optional
 		
-		if [ -n "$value" ] && [ -n "$type_id" ]
+		if [ -n "$value" ] && [ -n "$type_uid" ]
 		then
-			echo --- Get type $type_id ---
+			echo --- Get type $type_uid ---
 			
-			sql="SELECT is_alert, name, description FROM $db_table_types WHERE uid = '${type_id//\'/\'\'}'"
+			sql="SELECT id, name, description FROM $db_table_types WHERE uid = '${type_uid//\'/\'\'}'"
 			echo $sql
 			sql=$($sql_cmd "$sql")
 			code=$?
-			sql="${sql#"${sql%%[![:space:]]*}"}"
-			
+			sql="${sql#"${sql%%[![:space:]]*}"}"			
 			echo $sql
 			
-			if [ -n "$sql" ]
+			if [ -z "$sql" ]
 			then
-				is_alert="${sql%% *}"
-				is_alert="${is_alert/f/FALSE}"
-				is_alert="${is_alert/t/TRUE}"
-				sql="${sql#* | }"
-				type_name="${sql%% |*}"
-				sql="${sql#* |}"
-				type_description="$(echo $sql | sed 's/\s*+\s|\s|\s/\n/g')"
-			else
-				is_alert=TRUE
-				type_name="UNKNOWN TYPE"
-				type_description=""
-				#type_description="$type_id $object"
-				#type_description="${type_description%"${type_description##*[![:space:]]}"}"
+				echo --- Type not found ---
+			
+				sql="SELECT id, name, description FROM $db_table_types WHERE uid = '$unknown_type_uid'"
+				echo $sql
+				sql=$($sql_cmd "$sql")
+				code=$?
+				sql="${sql#"${sql%%[![:space:]]*}"}"			
+				echo $sql
 			fi
+			
+			if [ -z "$sql" ]
+			then
+				echo --- Insert unknown type ---
+			
+				sql="INSERT INTO $db_table_types (uid, is_alert, name, notification_delay, notification_period) VALUES ('$unknown_type_uid', TRUE, 'UNKNOWN TYPE', 0, 60)"
+				echo $sql
+				sql=$($sql_cmd "$sql")
+				code=$?
+				echo $sql
+				if [ $code != 0 ]; then exit $code; fi
+			
+				sql="SELECT id, name, description FROM $db_table_types WHERE uid = '$unknown_type_uid'"
+				echo $sql
+				sql=$($sql_cmd "$sql")
+				code=$?
+				sql="${sql#"${sql%%[![:space:]]*}"}"			
+				echo $sql
+			fi
+			
+			if [ -z "$sql" ]
+			then
+				echo --- Unknown type error ---
+				exit 210
+			fi
+			
+			type_id="${sql%% *}"
+			sql="${sql#* | }"
+			type_name="${sql%% |*}"
+			sql="${sql#* |}"
+			type_description="$(echo $sql | sed 's/\s*+\s|\s|\s/\n/g')"
 		
-			echo $is_alert - is_alert
+			echo $type_id - type_id
 			echo $type_name - type name
 			echo $type_description - type description
 						
@@ -518,7 +598,7 @@ then
 				series_short_name="$series_short_name - $object"
 			fi
 			
-			series_uid="$target_uid${id_delimeter}$type_id$object_id"
+			series_uid="$target_uid${id_delimeter}$type_uid$object_id"
 			series_uid="${series_uid,,}"
 			series_uid="'${series_uid//\'/\'\'}'"
 			
@@ -562,7 +642,7 @@ then
 			
 			echo --- Add series row of $series_uid ---
 			
-			sql="INSERT INTO $db_table_series (target_id, uid, is_alert, value, repetition, name, short_name, description) VALUES ($target_id, $series_uid, $is_alert, $value, $repetition, '${series_name//\'/\'\'}', '${series_short_name//\'/\'\'}', $series_description)"
+			sql="INSERT INTO $db_table_series (target_id, uid, type_id, value, repetition, name, short_name, description) VALUES ($target_id, $series_uid, $type_id, $value, $repetition, '${series_name//\'/\'\'}', '${series_short_name//\'/\'\'}', $series_description)"
 			#echo $sql
 			sql=$($sql_cmd "$sql")
 			code=$?
