@@ -14,7 +14,6 @@ class MonitoringLastAlert extends MonitoringSeriesView {
         $this->addFields([
 			  'time' => ['type' => 'datetime', 'neverSave' => true],
 			  'value' => ['type' => 'integer', 'neverSave' => true],
-			  'repetition' => ['type' => 'integer', 'neverSave' => true],
 			  'uid' => ['neverSave' => true],
 			  'name' => ['neverSave' => true],
 			  'short_name' => ['neverSave' => true],

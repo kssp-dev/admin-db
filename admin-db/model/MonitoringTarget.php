@@ -84,6 +84,18 @@ class MonitoringTarget extends EmptyNullModel {
 		return $count . ' series rows of target "' . $this->get('name') . '" were deleted';
 	}
     
+    public function countSeries() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$model = new MonitoringSeries($app->db);
+		$model->addCondition('target_id', $this->get('id'));
+		$count = $model->executeCountQuery();
+		
+		return $count;
+	}
+    
     public function deleteLogs() {
 		$this->assertIsEntity();
 		
@@ -95,18 +107,6 @@ class MonitoringTarget extends EmptyNullModel {
 		$count = $delete->executeStatement();
 		
 		return $count . ' log rows of target "' . $this->get('name') . '" were deleted';
-	}
-    
-    public function countSeries() {
-		$this->assertIsEntity();
-		
-		global $app;
-		
-		$model = new MonitoringSeries($app->db);
-		$model->addCondition('target_id', $this->get('id'));
-		$count = $model->executeCountQuery();
-		
-		return $count;
 	}
     
     public function countLogs() {

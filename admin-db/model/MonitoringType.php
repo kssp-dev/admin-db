@@ -15,6 +15,8 @@ class MonitoringType extends EmptyNullModel {
 			  'is_alert' => ['type' => 'boolean', 'nullable' => false],
 			  'name' => ['required' => true],
 			  'uid' => ['required' => true],
+			  'notification_delay' => ['type' => 'integer', 'nullable' => false],
+			  'notification_period' => ['type' => 'integer', 'nullable' => false],
 			  'description' => ['type' => 'text']
         ]);
         
@@ -32,18 +34,63 @@ class MonitoringType extends EmptyNullModel {
 				return ['uid' => '@, # or blank forbidden'];
 			}
 			
+			if ($this->get('notification_delay') < 0) {
+				return ['notification_delay' => 'Must be greater or equal zero'];
+			}
+			
+			if ($this->get('notification_period') < 0) {
+				return ['notification_period' => 'Must be greater or equal zero'];
+			}
+			
+			if (
+				$this->get('notification_period') > 0
+				&& $this->get('notification_period') <= $this->get('notification_delay')
+			) {
+				return ['notification_period' => 'Must be zero or greater than delay'];
+			}
+			
 			$m = clone $this->getModel();
 			$m->addCondition('uid', $this->get('uid'));
 			$m = $m->tryLoadAny();
 			if ($m != null && $m->get('id') != $this->get('id')) {
-				return ['uid' => 'Must have unique text id'];
+				return ['uid' => 'Must have unique uid'];
 			}
 			
 			if (preg_match('/[\'"]/', $this->get('description')) == 1) {
 				return ['description' => 'Quotation mark forbidden'];
 			}
 		});		
+
+		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_DELETE, function (\Atk4\Data\Model $entity) {
+			$entity->assertIsEntity();
+			$entity->deleteSeries();
+		});
     }
+    
+    public function deleteSeries() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$delete = $app->db->initQuery(new MonitoringSeries($app->db));
+		$delete->mode('delete');
+		$delete->where('type_id', $this->get('id'));
+		$count = $delete->executeStatement();
+		
+		return $count . ' series rows of type "' . $this->get('name') . '" were deleted';
+	}
+    
+    public function countSeries() {
+		$this->assertIsEntity();
+		
+		global $app;
+		
+		$model = new MonitoringSeries($app->db);
+		$model->addCondition('type_id', $this->get('id'));
+		$count = $model->executeCountQuery();
+		
+		return $count;
+	}
 }
 
 ?>

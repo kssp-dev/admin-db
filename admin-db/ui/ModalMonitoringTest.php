@@ -56,7 +56,7 @@ class ModalMonitoringTest extends ModalLoader {
 				}
 				
 				$p->addHeader($seriesModel->executeCountQuery() . ' Metrics Added', 4);
-				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'repetition', 'uid', 'name', 'description']);
+				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'uid', 'name', 'description']);
 				
 								
 				if ($logEntity && $logEntity->isEntity()) {

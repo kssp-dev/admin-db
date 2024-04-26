@@ -13,18 +13,26 @@ class MonitoringSeries extends EmptyNullModel {
 
         $this->addFields([
 			  'time' => ['type' => 'datetime', 'neverSave' => true],
-			  'uid' => ['neverSave' => true],
-			  'is_alert' => ['type' => 'boolean', 'neverSave' => true],
 			  'name' => ['neverSave' => true],
+			  'uid' => ['neverSave' => true],
 			  'short_name' => ['neverSave' => true],
 			  'value' => ['type' => 'integer', 'neverSave' => true],
-			  'repetition' => ['type' => 'integer', 'neverSave' => true],
 			  'description' => ['type' => 'text', 'neverSave' => true]
         ]);
         
         $this->getField('id')->neverSave = true;
 		
-		$this->hasOne('target_id', ['required' => true, 'model' => new MonitoringTarget($this->getPersistence())]);
+		$this->hasOne('target_id', [
+			'required' => true,
+			'model' => new MonitoringTarget($this->getPersistence())
+		]);
+		
+		$this->hasOne('type_id', [
+			'required' => true,
+			'model' => new MonitoringType($this->getPersistence())
+		])->addFields([
+			'is_alert'
+		]);
     }
 }
 

@@ -11,6 +11,7 @@ DROP VIEW IF EXISTS "monitoring"."notifications";
 
 DROP VIEW IF EXISTS "monitoring"."last_metrics";
 DROP VIEW IF EXISTS "monitoring"."last_alerts";
+DROP VIEW IF EXISTS "monitoring"."last_series";
 
 DROP VIEW IF EXISTS "monitoring"."metrics";
 DROP VIEW IF EXISTS "monitoring"."alerts";

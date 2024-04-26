@@ -12,8 +12,7 @@ class MonitoringInstance extends \Atk4\Data\Model {
         $this->addFields([
 			  'enabled' => ['type' => 'boolean', 'nullable' => false],
 			  'instance' => ['required' => true],
-			  'name' => ['required' => true],
-			  'run_count' => ['required' => true, 'type' => 'integer', 'readOnly' => true]
+			  'name' => ['required' => true]
         ]);
         
         $this->getField('id')->neverSave = true;

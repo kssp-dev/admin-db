@@ -12,7 +12,7 @@ class ModalCloner extends \Atk4\Ui\Js\JsModal {
 			$row =[];
 					
 			foreach ($form->model->getFields() as $key=>$field) {
-				if ($key != $form->model->idField) {
+				if ($field->isEditable()) {
 					$row[$key] = $form->model->get($key);
 				}
 			}
@@ -21,6 +21,8 @@ class ModalCloner extends \Atk4\Ui\Js\JsModal {
 			}
 					
 			$form->model->getModel()->insert($row);
+			
+			usleep(500000);
 			
 			return new \Atk4\Ui\Js\JsBlock([
 				$table->jsReload(),

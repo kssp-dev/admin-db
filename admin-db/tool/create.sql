@@ -163,7 +163,7 @@ ALTER TABLE IF EXISTS "monitoring"."series" DROP COLUMN IF EXISTS "is_alert";
 
 DROP VIEW IF EXISTS "monitoring"."alerts";
 CREATE OR REPLACE VIEW "monitoring"."alerts" AS
-	SELECT "s"."id", "s"."time", "s"."value", "s"."repetition", "s"."uid", "s"."name", "s"."short_name", "s"."description"
+	SELECT "s"."id", "s"."time", "s"."value", "s"."uid", "s"."name", "s"."short_name", "s"."description"
 	FROM "monitoring"."series" "s"
 	JOIN "monitoring"."types" "t"
 	ON "t"."id" = "s"."type_id"
@@ -177,7 +177,7 @@ CREATE OR REPLACE RULE "delete_alerts_rule" AS
 
 DROP VIEW IF EXISTS "monitoring"."metrics";
 CREATE OR REPLACE VIEW "monitoring"."metrics" AS
-	SELECT "s"."id", "s"."time", "s"."value", "s"."repetition", "s"."uid", "s"."name", "s"."short_name", "s"."description"
+	SELECT "s"."id", "s"."time", "s"."value", "s"."uid", "s"."name", "s"."short_name", "s"."description"
 	FROM "monitoring"."series" "s"
 	JOIN "monitoring"."types" "t"
 	ON "t"."id" = "s"."type_id"
@@ -187,6 +187,20 @@ CREATE OR REPLACE RULE "delete_metrics_rule" AS
 	ON DELETE TO "monitoring"."metrics" DO INSTEAD
 	DELETE FROM "monitoring"."series"
 	WHERE "id" = OLD."id";
+
+
+DROP VIEW IF EXISTS "monitoring"."last_series";
+CREATE OR REPLACE VIEW "monitoring"."last_series" AS
+	WITH "w" AS (
+		SELECT MAX("s"."time") "wtime", "s"."uid" "wuid"
+		FROM "monitoring"."series" "s"
+		GROUP BY "s"."uid"
+	)
+	SELECT "s"."id", "s"."time", "s"."uid"
+	FROM "w"
+	JOIN "monitoring"."series" "s"
+	ON "s"."time" = "wtime" AND "s"."uid" = "wuid";
+COMMENT ON VIEW "monitoring"."last_series" IS 'Last state of series';
 
 
 DROP VIEW IF EXISTS "monitoring"."last_alerts";
