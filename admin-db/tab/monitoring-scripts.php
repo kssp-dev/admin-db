@@ -50,6 +50,7 @@ $crudOptions = [
 			'icon' => 'file medical alternate',
 			'caption' => 'Script',
 			'ui' => 'basic blue button',
+			'disabled' => ! $app->auth->user->isLoaded(),
 			'modal' => function ($p, $entity, $crud) {
 				new ScriptEditor($entity, $p, $crud);
 			}
