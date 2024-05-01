@@ -6,6 +6,7 @@ $app_dir = __DIR__ . '/';
 
 $server_root_length = strlen($_SERVER['DOCUMENT_ROOT']);
 $tab_uri = $_SERVER['PHP_SELF'];
+$query_string = $_SERVER['QUERY_STRING'];
 
 if ($server_root_length <= 0 || empty($tab_uri)) {
 	print_r('HTTP server required');

@@ -11,6 +11,10 @@ $model->removeUserAction('add');
 $model->removeUserAction('edit');
 
 $model->getUserAction('delete')->confirmation = true;
+		
+if (! $app->auth->user->isLoaded()) {
+	$model->getUserAction('delete')->enabled = false;
+}
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 

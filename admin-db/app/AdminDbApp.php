@@ -10,29 +10,36 @@ class AdminDbApp extends \Atk4\Ui\App {
         parent::__construct();
 
 		global $db_dsn, $db_user, $db_psw, $app_uri, $title, $tab_uri;
-		
+
 		if (!empty($title)) {
 			$this->title = $this->title . ' - ' . $title;
 		}
-        
+
         $this->db = \Atk4\Data\Persistence::connect($db_dsn, $db_user, $db_psw);
-        
+
         $this->uiPersistence = new UiPersistence();
-       
+
         $this->initLayout([\Atk4\Ui\Layout\Maestro::class]);
-        
+
 		$this->auth = new \Atk4\Login\Auth($this, [
 			'check' => false,
-			'pageExit' => $tab_uri
+			'pageExit' => $tab_uri,
+			'fieldLogin' => 'login'
 		]);
-		$this->auth->setModel(new LoginUser($this->db));
-		
+		try {
+			$this->auth->setModel(new LoginUser($this->db));
+		} catch (Exception $e) {
+			$this->auth->logout();
+			$this->redirect($tab_uri);
+			exit;
+		}
+
 		$userCount = $this->auth->user->getModel()->executeCountQuery();
-		
+
 		// Header menu buttons
-		
+
 		$item = $this->layout->menu->addItem()->addClass('aligned right');
-		
+
 		if ($this->auth->user->isLoaded()) {
 			\Atk4\Ui\Button::addTo($item, [
 				'icon' => 'log out'
@@ -51,17 +58,17 @@ class AdminDbApp extends \Atk4\Ui\App {
 				})->jsShow()
 			);
 		}
-		
+
 		\Atk4\Ui\Button::addTo($item, [
 			'icon' => 'home'
 			, 'class.circular' => true
 		])->on('click', $this->jsRedirect($app_uri . '..', false));
-		
+
 		\Atk4\Ui\Button::addTo($item, [
 			'icon' => 'clone outline'
 			, 'class.circular' => true
 		])->on('click', $this->jsRedirect($tab_uri, true));
-		
+
 		// Left tabs
 
         $menu = $this->layout->addMenuGroup([
@@ -133,7 +140,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 					'Users'
 					, 'icon'=>'user friends'
 				], [$app_uri . 'tab/admin-users'], $menu);
-			
+
 		}
     }
 }

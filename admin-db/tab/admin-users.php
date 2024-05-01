@@ -6,6 +6,7 @@ require_once __DIR__ . '/../app.php';
 
 if (! $app->auth->user->isLoaded()
 	&& $app->auth->user->getModel()->executeCountQuery() != 0
+	&& empty($query_string)
 ) {
 	$app->redirect($app_uri . "..");
 	exit;
@@ -22,9 +23,9 @@ $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 $crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['name', 'email']
-			, 'addFields' => ['name', 'email', 'password']
-			, 'editFields' => ['name', 'email', 'password']
+			'displayFields' => ['name', 'login', 'email']
+			, 'addFields' => ['name', 'login', 'password', 'email']
+			, 'editFields' => ['name', 'login', 'password', 'email']
 			, 'ipp' => 14
 		]
 	]

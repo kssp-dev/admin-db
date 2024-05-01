@@ -23,7 +23,7 @@ if (! $app->auth->user->isLoaded()) {
 	$model->getUserAction('add')->enabled = false;
 	$model->getUserAction('edit')->enabled = false;
 	$model->getUserAction('delete')->enabled = false;
-}	
+}
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 
@@ -60,6 +60,7 @@ $crudOptions = [
 			'caption' => 'Series',
 			'ui' => 'basic orange button',
 			'confirmation' => 'Are you sure to delete all series of the script?',
+			'disabled' => ! $app->auth->user->isLoaded(),
 			'action' => function (\Atk4\Data\Model $entity) {
 				return new \Atk4\Ui\Js\JsToast($entity->deleteSeries());
 			}

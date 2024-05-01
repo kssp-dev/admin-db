@@ -58,6 +58,7 @@ $crudOptions = [
 			'caption' => 'Series',
 			'ui' => 'basic orange button',
 			'confirmation' => 'Are you sure to delete all series of the target?',
+			'disabled' => ! $app->auth->user->isLoaded(),
 			'action' => function (\Atk4\Data\Model $entity) {
 				return new \Atk4\Ui\Js\JsToast($entity->deleteSeries());
 			}

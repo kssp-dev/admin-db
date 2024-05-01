@@ -58,8 +58,9 @@ CREATE TABLE IF NOT EXISTS "login"."roles" (
 CREATE TABLE IF NOT EXISTS "login"."users" (
   "id" SERIAL PRIMARY KEY,
   "role_id" INTEGER NULL REFERENCES "login"."roles",
-  "name" VARCHAR(28) NOT NULL UNIQUE,
-  "email" VARCHAR(29) NOT NULL UNIQUE,
+  "name" VARCHAR(31) NOT NULL UNIQUE,
+  "login" VARCHAR(31) NOT NULL UNIQUE,
+  "email" VARCHAR(47) NULL UNIQUE,
   "password" VARCHAR(60) NOT NULL
 );
 
