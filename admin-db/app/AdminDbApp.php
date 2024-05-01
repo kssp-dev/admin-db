@@ -4,6 +4,7 @@ class AdminDbApp extends \Atk4\Ui\App {
     public $title = 'ADMIN DATABASE';
     public $db;
     public $user;
+    public $auth;
 
     function __construct() {
         parent::__construct();
@@ -19,20 +20,47 @@ class AdminDbApp extends \Atk4\Ui\App {
         $this->uiPersistence = new UiPersistence();
        
         $this->initLayout([\Atk4\Ui\Layout\Maestro::class]);
+        
+		$this->auth = new \Atk4\Login\Auth($this, [
+			'check' => false,
+			'pageExit' => $tab_uri
+		]);
+		$this->auth->setModel(new LoginUser($this->db));
+		
+		$userCount = $this->auth->user->getModel()->executeCountQuery();
 		
 		// Header menu buttons
 		
 		$item = $this->layout->menu->addItem()->addClass('aligned right');
 		
+		if ($this->auth->user->isLoaded()) {
+			\Atk4\Ui\Button::addTo($item, [
+				'icon' => 'log out'
+				, 'class.circular' => true
+				, 'class.green' => true
+				, 'content' => $this->auth->user->get('name')
+			])->link(['logout' => 1]);
+		} else {
+			\Atk4\Ui\Button::addTo($item, [
+				'icon' => 'sign in'
+				, 'class.circular' => true
+				, 'class.orange' => true
+			])->on('click',
+				\Atk4\Ui\Modal::addTo($this)->set(function (\Atk4\Ui\View $p) {
+					LoginForm::addTo($p, ['auth' => $this->auth]);
+				})->jsShow()
+			);
+		}
+		
 		\Atk4\Ui\Button::addTo($item, [
 			'icon' => 'home'
 			, 'class.circular' => true
-		])	->on('click', $this->jsRedirect($app_uri . '..', false));
+		])->on('click', $this->jsRedirect($app_uri . '..', false));
 		
 		\Atk4\Ui\Button::addTo($item, [
 			'icon' => 'clone outline'
 			, 'class.circular' => true
-		])	->on('click', $this->jsRedirect($tab_uri, true));
+		])->on('click', $this->jsRedirect($tab_uri, true));
 		
 		// Left tabs
 
@@ -78,24 +106,35 @@ class AdminDbApp extends \Atk4\Ui\App {
 				, 'icon'=>'file medical alternate'
 			], [$app_uri . 'tab/scripts'], $menu);
         */
-        $menu = $this->layout->addMenuGroup([
-			'Administration'
-			, 'icon'=>'tools'
-		]);
-			$this->layout->addMenuItem([
-				'Site'
-				, 'icon'=>'code'
-			], [$app_uri . 'tab/admin-site'], $menu);
-			/*
-			$this->layout->addMenuItem([
-				'Export'
-				, 'icon'=>'file export'
-			], [$app_uri . 'tab/admin-export'], $menu);
-			$this->layout->addMenuItem([
-				'Database'
-				, 'icon'=>'database'
-			], [$app_uri . 'tab/admin-database'], $menu);
-			*/
+		if ($this->auth->user->isLoaded()
+			|| $userCount == 0
+		) {
+			$menu = $this->layout->addMenuGroup([
+				'Administration'
+				, 'icon'=>'tools'
+			]);
+				if ($this->auth->user->isLoaded()) {
+					$this->layout->addMenuItem([
+						'Site'
+						, 'icon'=>'code'
+					], [$app_uri . 'tab/admin-site'], $menu);
+				}
+				/*
+				$this->layout->addMenuItem([
+					'Export'
+					, 'icon'=>'file export'
+				], [$app_uri . 'tab/admin-export'], $menu);
+				$this->layout->addMenuItem([
+					'Database'
+					, 'icon'=>'database'
+				], [$app_uri . 'tab/admin-database'], $menu);
+				*/
+				$this->layout->addMenuItem([
+					'Users'
+					, 'icon'=>'user friends'
+				], [$app_uri . 'tab/admin-users'], $menu);
+			
+		}
     }
 }
 

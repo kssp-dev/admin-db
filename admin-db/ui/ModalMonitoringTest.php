@@ -40,7 +40,7 @@ class ModalMonitoringTest extends ModalLoader {
 					$param = $param . $key . '=' . $var . "\t";
 				}
 
-				$cmd = 'bash "' . __DIR__  . '/../tool/monitoring_launcher.sh" "' . $param . '" 2>&1';
+				$cmd = 'bash "' . __DIR__  . '/../tool/monitoring-launcher.sh" "' . $param . '" 2>&1';
 				//print_r($cmd . "\n");
 
 				

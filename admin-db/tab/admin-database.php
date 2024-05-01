@@ -5,6 +5,12 @@ $title = 'Database Administration';
 require_once __DIR__ . '/../app.php';
 
 
+if (! $app->auth->user->isLoaded()) {
+	$app->redirect($app_uri . "..");
+	exit;
+}
+
+
 \Atk4\Ui\Button::addTo($app, [
 	'Download database remove structure script'
 	, 'icon' => 'eraser'

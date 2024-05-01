@@ -27,6 +27,7 @@ return array(
     'Doctrine\\Common\\Cache\\' => array($vendorDir . '/doctrine/cache/lib/Doctrine/Common/Cache'),
     'Doctrine\\Common\\' => array($vendorDir . '/doctrine/event-manager/src'),
     'Atk4\\Ui\\' => array($vendorDir . '/atk4/ui/src'),
+    'Atk4\\Login\\' => array($vendorDir . '/atk4/login/src'),
     'Atk4\\Data\\' => array($vendorDir . '/atk4/data/src'),
     'Atk4\\Core\\' => array($vendorDir . '/atk4/core/src'),
 );

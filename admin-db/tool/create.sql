@@ -43,6 +43,40 @@ CREATE INDEX IF NOT EXISTS "scripts_timer_file_idx" ON "public"."scripts" ("time
 CREATE INDEX IF NOT EXISTS "scripts_database_name_idx" ON "public"."scripts" ("database_name");
 CREATE INDEX IF NOT EXISTS "database_table" ON "public"."scripts" ("database_table");
 
+--- LOGIN ---
+
+CREATE SCHEMA IF NOT EXISTS "login";
+COMMENT ON SCHEMA "login" IS 'Login user data and access rights';
+
+
+CREATE TABLE IF NOT EXISTS "login"."roles" (
+  "id" SERIAL PRIMARY KEY,
+  "name" VARCHAR(27) NOT NULL UNIQUE
+);
+
+
+CREATE TABLE IF NOT EXISTS "login"."users" (
+  "id" SERIAL PRIMARY KEY,
+  "role_id" INTEGER NULL REFERENCES "login"."roles",
+  "name" VARCHAR(28) NOT NULL UNIQUE,
+  "email" VARCHAR(29) NOT NULL UNIQUE,
+  "password" VARCHAR(60) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS "login"."rules" (
+  "id" SERIAL PRIMARY KEY,
+  "role_id" INTEGER NOT NULL REFERENCES "login"."roles",
+  "model" VARCHAR(31) NOT NULL,
+  "all_visible" BOOLEAN NOT NULL DEFAULT FALSE,
+  "visible_fields" TEXT NULL,
+  "all_editable" BOOLEAN NOT NULL DEFAULT FALSE,
+  "editable_fields" TEXT NULL,
+  "all_actions" BOOLEAN NOT NULL DEFAULT FALSE,
+  "actions" TEXT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "rules_model_role_id_key" ON "login"."rules" ("model", "role_id");
+
 --- EXPORT ---
 
 CREATE TABLE IF NOT EXISTS "public"."export" (
@@ -76,7 +110,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."instances" (
 );
 COMMENT ON TABLE "monitoring"."instances" IS 'Monitoring instances list';
 
-ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "is_running" BOOLEAN NOT NULL DEFAULT FALSE;
+--ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "is_running" BOOLEAN NOT NULL DEFAULT FALSE;
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."types" (
@@ -91,11 +125,11 @@ CREATE TABLE IF NOT EXISTS "monitoring"."types" (
 );
 COMMENT ON TABLE "monitoring"."types" IS 'Types of monitoring';
 
-ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_delay" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_delay" >= 0);
-ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_delay" DROP DEFAULT;
-ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_period" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_period" >= 0);
-ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_period" DROP DEFAULT;
-ALTER TABLE IF EXISTS "monitoring"."types" ADD CHECK ("notification_period" = 0 OR "notification_period" > "notification_delay");
+--ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_delay" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_delay" >= 0);
+--ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_delay" DROP DEFAULT;
+--ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_period" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_period" >= 0);
+--ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_period" DROP DEFAULT;
+--ALTER TABLE IF EXISTS "monitoring"."types" ADD CHECK ("notification_period" = 0 OR "notification_period" > "notification_delay");
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
@@ -152,13 +186,12 @@ CREATE TABLE IF NOT EXISTS "monitoring"."series" (
 );
 CREATE INDEX IF NOT EXISTS "series_time_idx" ON "monitoring"."series" ("time");
 CREATE INDEX IF NOT EXISTS "series_uid_idx" ON "monitoring"."series" ("uid");
-CREATE INDEX IF NOT EXISTS "series_is_alert_idx" ON "monitoring"."series" ("is_alert");
 COMMENT ON TABLE "monitoring"."series" IS 'Time series of metrics and alerts';
 
-ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "type_id" INTEGER NOT NULL REFERENCES "monitoring"."types" DEFAULT 1;
-ALTER TABLE IF EXISTS "monitoring"."series" ALTER COLUMN "type_id" DROP DEFAULT;
-ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "notified" BOOLEAN NOT NULL DEFAULT FALSE;
-ALTER TABLE IF EXISTS "monitoring"."series" DROP COLUMN IF EXISTS "is_alert";
+--ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "type_id" INTEGER NOT NULL REFERENCES "monitoring"."types" DEFAULT 1;
+--ALTER TABLE IF EXISTS "monitoring"."series" ALTER COLUMN "type_id" DROP DEFAULT;
+--ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "notified" BOOLEAN NOT NULL DEFAULT FALSE;
+--ALTER TABLE IF EXISTS "monitoring"."series" DROP COLUMN IF EXISTS "is_alert";
 
 
 DROP VIEW IF EXISTS "monitoring"."alerts";

@@ -5,6 +5,14 @@ DROP TABLE IF EXISTS "public"."ip";
 
 DROP TABLE IF EXISTS "public"."export";
 
+--- LOGIN ---
+
+DROP VIEW IF EXISTS "login"."rules";
+DROP VIEW IF EXISTS "login"."users";
+DROP TABLE IF EXISTS "login"."roles";
+
+DROP SCHEMA IF EXISTS "login";
+
 --- MONITORING ---
 
 DROP VIEW IF EXISTS "monitoring"."notifications";

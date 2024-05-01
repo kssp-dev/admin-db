@@ -10,10 +10,10 @@ class ComposerStaticInita94beddf9265bbe5cdfb7e12fa5c4ad2
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '23c18046f52bef3eea034657bafda50f' => __DIR__ . '/..' . '/symfony/polyfill-php81/bootstrap.php',
         '5897ea0ac4cccf14d323035e65887801' => __DIR__ . '/..' . '/symfony/polyfill-php82/bootstrap.php',
         '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
-        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '5b2b50ec910094e6f81001b1eb2113fe' => __DIR__ . '/..' . '/atk4/data/bootstrap-types.php',
     );
 
@@ -59,6 +59,7 @@ class ComposerStaticInita94beddf9265bbe5cdfb7e12fa5c4ad2
         'A' => 
         array (
             'Atk4\\Ui\\' => 8,
+            'Atk4\\Login\\' => 11,
             'Atk4\\Data\\' => 10,
             'Atk4\\Core\\' => 10,
         ),
@@ -149,6 +150,10 @@ class ComposerStaticInita94beddf9265bbe5cdfb7e12fa5c4ad2
         'Atk4\\Ui\\' => 
         array (
             0 => __DIR__ . '/..' . '/atk4/ui/src',
+        ),
+        'Atk4\\Login\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/atk4/login/src',
         ),
         'Atk4\\Data\\' => 
         array (

@@ -167,6 +167,85 @@
             "install-path": "../atk4/data"
         },
         {
+            "name": "atk4/login",
+            "version": "5.0.0",
+            "version_normalized": "5.0.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/atk4/login.git",
+                "reference": "5006d1b492b4fe407f795ada0fa2244ac2628a19"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/atk4/login/zipball/5006d1b492b4fe407f795ada0fa2244ac2628a19",
+                "reference": "5006d1b492b4fe407f795ada0fa2244ac2628a19",
+                "shasum": ""
+            },
+            "require": {
+                "atk4/ui": "~5.0.0",
+                "php": ">=7.4 <8.4"
+            },
+            "conflict": {
+                "behat/behat": "<3.9",
+                "behat/mink": "<1.9",
+                "symfony/console": "<4.4.30 || >=5 <5.3.7",
+                "symfony/css-selector": "<4.4.24 || >=5 <5.2.9"
+            },
+            "require-dev": {
+                "atk4/behat-mink-selenium2-driver": "^1.6.2",
+                "behat/mink-extension": "^2.3.1",
+                "ergebnis/composer-normalize": "^2.13",
+                "ergebnis/phpunit-slow-test-detector": "^2.9",
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan": "^1.0",
+                "phpstan/phpstan-deprecation-rules": "^1.0",
+                "phpstan/phpstan-strict-rules": "^1.3",
+                "phpunit/phpunit": "^9.5.5"
+            },
+            "time": "2024-03-26T18:55:47+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Atk4\\Login\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Romans Malinovskis",
+                    "email": "romans@agiletoolkit.org",
+                    "homepage": "https://nearly.guru/"
+                },
+                {
+                    "name": "Michael Voříšek",
+                    "homepage": "https://mvorisek.cz/"
+                }
+            ],
+            "description": "Login and User module for Agile UI",
+            "homepage": "https://github.com/atk4/login",
+            "keywords": [
+                "Agile",
+                "acl",
+                "agile ui",
+                "atk4",
+                "auth",
+                "data",
+                "framework",
+                "login",
+                "user"
+            ],
+            "support": {
+                "issues": "https://github.com/atk4/login/issues",
+                "source": "https://github.com/atk4/login/tree/5.0.0"
+            },
+            "install-path": "../atk4/login"
+        },
+        {
             "name": "atk4/ui",
             "version": "5.0.0",
             "version_normalized": "5.0.0.0",

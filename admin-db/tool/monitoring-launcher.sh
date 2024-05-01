@@ -66,7 +66,7 @@ then
 
 	echo --- Instance ---
 
-	if [ -z "$MONITORING_INSTANCE"]
+	if [ -z "$MONITORING_INSTANCE" ]
 	then
 		MONITORING_INSTANCE=$(hostname)
 	fi
