@@ -140,9 +140,13 @@ CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "uid" VARCHAR(31) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "script" TEXT NOT NULL,
-  "updated" DATE NOT NULL DEFAULT NOW()
+  "updated" DATE NOT NULL DEFAULT NOW(),
+  "login" VARCHAR(31) NOT NULL,
 );
 COMMENT ON TABLE "monitoring"."scripts" IS 'Scripts run on monitoring instances';
+
+ALTER TABLE IF EXISTS "monitoring"."scripts" ADD COLUMN IF NOT EXISTS "login" VARCHAR(31) NOT NULL DEFAULT '';
+ALTER TABLE IF EXISTS "monitoring"."scripts" ALTER COLUMN "login" DROP DEFAULT;
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."targets" (

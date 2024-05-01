@@ -4,7 +4,7 @@ class MonitoringScript extends \Atk4\Data\Model {
     public $table = 'monitoring.scripts';
 
     protected function init(): void
-    {
+    {		
         parent::init();
 		
 		$this->caption = 'Monitoring Script';
@@ -14,7 +14,8 @@ class MonitoringScript extends \Atk4\Data\Model {
 			  'name' => ['required' => true],
 			  'uid' => ['required' => true],
 			  'script' => ['type' => 'text'],
-			  'updated' => ['type' => 'date']
+			  'updated' => ['type' => 'date'],
+			  'login',
         ]);
         
         $this->getField('id')->neverSave = true;
@@ -27,7 +28,9 @@ class MonitoringScript extends \Atk4\Data\Model {
 		]);
         
 		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_SAVE, function (\Atk4\Data\Model $m) {
+			global $app;
 			$m->set('updated', new DateTime());
+			$m->set('login', $app->auth->user->get('login'));
 		});
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
