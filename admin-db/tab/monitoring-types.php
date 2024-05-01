@@ -16,6 +16,12 @@ $action->preview = static function (\Atk4\Data\Model $entity) {
 			. $entity->countSeries() . ' series rows'
 			. '</span>';
 	};
+		
+if (! $app->auth->user->isLoaded()) {
+	$model->getUserAction('add')->enabled = false;
+	$model->getUserAction('edit')->enabled = false;
+	$model->getUserAction('delete')->enabled = false;
+}	
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 

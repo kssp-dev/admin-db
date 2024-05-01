@@ -334,9 +334,12 @@ class MasterCrud extends View
 				$seed = [];
 				$confirmation = '';
 				$modal = null;
+				$isDisabled = false;
+				
                 if (is_numeric($key)) {
                     $key = $action;
                 }
+                
                 if (is_array($action)) {
 					$seed = $action;
 					$action = null;
@@ -359,10 +362,16 @@ class MasterCrud extends View
 						$action = $seed['action'];
 						unset($seed['action']);
 					}
+					if (isset($seed['disabled'])) {
+						$isDisabled = $seed['disabled'];
+						unset($seed['disabled']);
+					}
                 }
+                
+                $button = null;
 
                 if (is_string($modal)) {
-                    $crud->addModalAction($seed, $key,
+                    $button = $crud->addModalAction($seed, $key,
 						static function ($p, $id) use ($modal, $crud) {
 							$p->add(new MethodExecutor($crud->model->load($id), $modal));
 						}
@@ -370,7 +379,7 @@ class MasterCrud extends View
                 }
 
                 if ($modal instanceof \Closure) {
-                    $crud->addModalAction($seed, $key,
+                    $button = $crud->addModalAction($seed, $key,
 						static function ($p, $id) use ($modal, $crud) {
 							return $modal($p, $crud->model->load($id), $crud);
 						}
@@ -378,7 +387,7 @@ class MasterCrud extends View
                 }
 
                 if ($action instanceof \Closure) {
-					$crud->addActionButton($seed,
+					$button = $crud->addActionButton($seed,
 						static function (\Atk4\Ui\Js\Jquery $j, $id) use ($action, $crud) {
 							return $action($crud->model->load($id), $crud);
 						}
@@ -387,7 +396,7 @@ class MasterCrud extends View
                 }
 
                 if ($action instanceof JsModal || $action instanceof ExecutorInterface) {
-                    $crud->addActionButton(
+                    $button = $crud->addActionButton(
 						$seed
 						, $action
 						, $confirmation
@@ -402,6 +411,10 @@ class MasterCrud extends View
                     unset($seed[0]);
                     $button->setDefaults($seed);
                 }
+                
+                if ($isDisabled && $button) {
+					$button->addClass('disabled');
+				}
 
 
                 //if (is_string($action)) {

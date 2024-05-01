@@ -17,6 +17,12 @@ $action->preview = static function (\Atk4\Data\Model $entity) {
 			. $entity->countLogs() . ' log rows'
 			. '</span>';
 	};
+		
+if (! $app->auth->user->isLoaded()) {
+	$model->getUserAction('add')->enabled = false;
+	$model->getUserAction('edit')->enabled = false;
+	$model->getUserAction('delete')->enabled = false;
+}	
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 
@@ -34,6 +40,7 @@ $crudOptions = [
 	, 'columnActions' => [
 		'Clone Target' => [
 			'icon' => 'clone outline',
+			'disabled' => ! $app->auth->user->isLoaded(),
 			'modal' => function ($p, $entity, $crud) {
 				new ModalCloner($entity, $p, $crud, ['name', 'uid', 'target', 'script_id']);
 			}
