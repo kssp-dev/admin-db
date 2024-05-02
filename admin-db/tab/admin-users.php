@@ -4,13 +4,16 @@ $title = 'Users';
 
 require_once __DIR__ . '/../app.php';
 
-if (! $app->auth->user->isLoaded()
+
+if (! $features || ! $features['admin']
+	|| ! $app->auth->user->isLoaded()
 	&& $app->auth->user->getModel()->executeCountQuery() != 0
 	&& empty($query_string)
 ) {
 	$app->redirect($app_uri . "..");
 	exit;
 }
+
 
 $model = new LoginUser($app->db);
 $model->setOrder('name');

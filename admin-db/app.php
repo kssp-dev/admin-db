@@ -15,11 +15,29 @@ if ($server_root_length <= 0 || empty($tab_uri)) {
 
 $app_uri = substr_replace($app_dir, '', 0, $server_root_length);
 
+
+$features = getenv('ADMIN_DB_FEATURES');
+if ($features) {
+	$features = preg_replace('/\W+/', ' ', $features);
+	$features = preg_replace('/^\s+/', '', $features);
+	$features = preg_replace('/\s+$/', '', $features);
+	$array = explode(' ', $features);
+	$features = [];
+	foreach ($array as $feature) {
+		$features[$feature] = true;
+	}
+	unset($array);
+}
+
 // Home tab redirect
 
 if (!isset($title)) {
-	header("Location: " . $app_uri . "tab/monitoring-last-alerts.php");
-	exit;
+	if ($features) {
+		if ($features['monitoring']) {
+			header("Location: " . $app_uri . "tab/monitoring-last-alerts.php");
+			exit;
+		}
+	}
 }
 
 

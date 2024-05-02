@@ -4,6 +4,13 @@ $title = 'Monitoring Alerts';
 
 require_once __DIR__ . '/../app.php';
 
+
+if (! $features || ! $features['monitoring']) {
+	$app->redirect($app_uri . "..");
+	exit;
+}
+
+
 $model = new MonitoringLastAlert($app->db);
 $model->setOrder(['time']);
 

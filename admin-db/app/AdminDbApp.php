@@ -9,7 +9,7 @@ class AdminDbApp extends \Atk4\Ui\App {
     function __construct() {
         parent::__construct();
 
-		global $db_dsn, $db_user, $db_psw, $app_uri, $title, $tab_uri;
+		global $db_dsn, $db_user, $db_psw, $app_uri, $title, $tab_uri, $features;
 
 		if (!empty($title)) {
 			$this->title = $this->title . ' - ' . $title;
@@ -71,34 +71,36 @@ class AdminDbApp extends \Atk4\Ui\App {
 
 		// Left tabs
 
-        $menu = $this->layout->addMenuGroup([
-			'Monitoring'
-			, 'icon'=>'chartline'
-		]);
-			$this->layout->addMenuItem([
-				'Alerts'
-				, 'icon'=>'bell'
-			], [$app_uri . 'tab/monitoring-last-alerts'], $menu);
-			$this->layout->addMenuItem([
-				'Metrics'
-				, 'icon'=>'tachometer alternate'
-			], [$app_uri . 'tab/monitoring-last-metrics'], $menu);
-			$this->layout->addMenuItem([
-				'Targets'
-				, 'icon'=>'crosshairs'
-			], [$app_uri . 'tab/monitoring-targets'], $menu);
-			$this->layout->addMenuItem([
-				'Scripts'
-				, 'icon'=>'file medical alternate'
-			], [$app_uri . 'tab/monitoring-scripts'], $menu);
-			$this->layout->addMenuItem([
-				'Types'
-				, 'icon'=>'microscope'
-			], [$app_uri . 'tab/monitoring-types'], $menu);
-			$this->layout->addMenuItem([
-				'Instances'
-				, 'icon'=>'server'
-			], [$app_uri . 'tab/monitoring-instances'], $menu);
+		if ($features && $features['monitoring']) {
+			$menu = $this->layout->addMenuGroup([
+				'Monitoring'
+				, 'icon'=>'chartline'
+			]);
+				$this->layout->addMenuItem([
+					'Alerts'
+					, 'icon'=>'bell'
+				], [$app_uri . 'tab/monitoring-last-alerts'], $menu);
+				$this->layout->addMenuItem([
+					'Metrics'
+					, 'icon'=>'tachometer alternate'
+				], [$app_uri . 'tab/monitoring-last-metrics'], $menu);
+				$this->layout->addMenuItem([
+					'Targets'
+					, 'icon'=>'crosshairs'
+				], [$app_uri . 'tab/monitoring-targets'], $menu);
+				$this->layout->addMenuItem([
+					'Scripts'
+					, 'icon'=>'file medical alternate'
+				], [$app_uri . 'tab/monitoring-scripts'], $menu);
+				$this->layout->addMenuItem([
+					'Types'
+					, 'icon'=>'microscope'
+				], [$app_uri . 'tab/monitoring-types'], $menu);
+				$this->layout->addMenuItem([
+					'Instances'
+					, 'icon'=>'server'
+				], [$app_uri . 'tab/monitoring-instances'], $menu);
+		}
 		/*
         $menu = $this->layout->addMenuGroup([
 			'Network'
@@ -113,8 +115,9 @@ class AdminDbApp extends \Atk4\Ui\App {
 				, 'icon'=>'file medical alternate'
 			], [$app_uri . 'tab/scripts'], $menu);
         */
-		if ($this->auth->user->isLoaded()
-			|| $userCount == 0
+		if ($features && $features['admin']
+			&& ($this->auth->user->isLoaded()
+			|| $userCount == 0)
 		) {
 			$menu = $this->layout->addMenuGroup([
 				'Administration'

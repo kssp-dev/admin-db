@@ -5,7 +5,9 @@ $title = 'Database Administration';
 require_once __DIR__ . '/../app.php';
 
 
-if (! $app->auth->user->isLoaded()) {
+if (! $features || ! $features['admin']
+	|| ! $app->auth->user->isLoaded()
+) {
 	$app->redirect($app_uri . "..");
 	exit;
 }
