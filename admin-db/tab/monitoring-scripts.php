@@ -5,7 +5,7 @@ $title = 'Monitoring Scripts';
 require_once __DIR__ . '/../app.php';
 
 
-if (! $features || ! $features['monitoring']) {
+if (! $features['monitoring']) {
 	$app->redirect($app_uri . "..");
 	exit;
 }

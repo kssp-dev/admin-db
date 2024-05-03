@@ -5,7 +5,7 @@ $title = 'Users';
 require_once __DIR__ . '/../app.php';
 
 
-if (! $features || ! $features['admin']
+if (! $features['admin']
 	|| ! $app->auth->user->isLoaded()
 	&& $app->auth->user->getModel()->executeCountQuery() != 0
 	&& empty($query_string)
