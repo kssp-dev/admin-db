@@ -141,12 +141,12 @@ CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "script" TEXT NOT NULL,
   "updated" DATE NOT NULL DEFAULT NOW(),
-  "login" VARCHAR(31) NOT NULL,
+  "login" VARCHAR(31) NOT NULL
 );
 COMMENT ON TABLE "monitoring"."scripts" IS 'Scripts run on monitoring instances';
 
-ALTER TABLE IF EXISTS "monitoring"."scripts" ADD COLUMN IF NOT EXISTS "login" VARCHAR(31) NOT NULL DEFAULT '';
-ALTER TABLE IF EXISTS "monitoring"."scripts" ALTER COLUMN "login" DROP DEFAULT;
+--ALTER TABLE IF EXISTS "monitoring"."scripts" ADD COLUMN IF NOT EXISTS "login" VARCHAR(31) NOT NULL DEFAULT '';
+--ALTER TABLE IF EXISTS "monitoring"."scripts" ALTER COLUMN "login" DROP DEFAULT;
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."targets" (

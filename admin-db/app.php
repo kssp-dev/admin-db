@@ -1,12 +1,14 @@
 <?php
 
+// Global variables
+
 $app_dir = __DIR__ . '/';
 
 //error_log(print_r("_SERVER " . print_r($_SERVER, true), true));
 
 $server_root_length = strlen($_SERVER['DOCUMENT_ROOT']);
 $tab_uri = $_SERVER['PHP_SELF'];
-$query_string = $_SERVER['QUERY_STRING'];
+$query_string = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : null;
 
 if ($server_root_length <= 0 || empty($tab_uri)) {
 	print_r('HTTP server required');
@@ -15,6 +17,7 @@ if ($server_root_length <= 0 || empty($tab_uri)) {
 
 $app_uri = substr_replace($app_dir, '', 0, $server_root_length);
 
+// Features
 
 $features = getenv('ADMIN_DB_FEATURES');
 if (! $features) {
@@ -33,14 +36,13 @@ unset($array);
 // Home tab redirect
 
 if (!isset($title)) {
-	if ($features) {
-		if ($features['monitoring']) {
-			header("Location: " . $app_uri . "tab/monitoring-last-alerts.php");
-			exit;
-		}
+	if ($features['monitoring']) {
+		header("Location: " . $app_uri . "tab/monitoring-last-alerts.php");
+		exit;
 	}
 }
 
+// Load classes
 
 require_once $app_dir . '../vendor/autoload.php';
 
@@ -57,6 +59,8 @@ foreach (glob($app_dir . 'model/*.php') as $file) {
 foreach (glob($app_dir . 'app/*.php') as $file) {
     require_once $file;
 }
+
+// Start application
 
 $app = new AdminDbApp();
 

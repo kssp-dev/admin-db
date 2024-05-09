@@ -9,7 +9,14 @@ class AdminDbApp extends \Atk4\Ui\App {
     function __construct() {
         parent::__construct();
 
-		global $db_dsn, $db_user, $db_psw, $app_uri, $title, $tab_uri, $features;
+		global $db_dsn;
+		global $db_user;
+		global $db_psw;
+		global $app_uri;
+		global $title;
+		global $tab_uri;
+		global $features;
+		global $query_string;
 
 		if (!empty($title)) {
 			$this->title = $this->title . ' - ' . $title;
@@ -20,12 +27,15 @@ class AdminDbApp extends \Atk4\Ui\App {
         $this->uiPersistence = new UiPersistence();
 
         $this->initLayout([\Atk4\Ui\Layout\Maestro::class]);
+        
+        // Authentication
 
 		$this->auth = new \Atk4\Login\Auth($this, [
 			'check' => false,
 			'pageExit' => $tab_uri,
 			'fieldLogin' => 'login'
 		]);
+		
 		try {
 			$this->auth->setModel(new LoginUser($this->db));
 		} catch (Exception $e) {
@@ -33,10 +43,20 @@ class AdminDbApp extends \Atk4\Ui\App {
 			$this->redirect($tab_uri);
 			exit;
 		}
-
-		$userCount = $this->auth->user->getModel()->executeCountQuery();
+		
+		// Keep session active
+		
+		if ($query_string == 'touch') {
+			session_start();
+			session_commit();
+			$this->terminateHtml('true');
+		}
+		
+		$timerView = TimerView::addTo($this);
 
 		// Header menu buttons
+		
+		$userCount = $this->auth->user->getModel()->executeCountQuery();
 
 		$item = $this->layout->menu->addItem()->addClass('aligned right');
 
