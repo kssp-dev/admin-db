@@ -156,7 +156,7 @@ then
 				do
 					echo --- Fetch oldest notification ---
 
-					sql="SELECT id, repetition, notification_delay, notification_period FROM $db_table_notifications ORDER BY time ASC LIMIT 1"
+					sql="SELECT id, value, repetition, notification_delay, notification_period FROM $db_table_notifications ORDER BY time ASC LIMIT 1"
 					echo $sql
 					sql=$($sql_cmd "$sql")
 					code=$?
@@ -170,6 +170,8 @@ then
 
 					id="${sql%% *}"
 					sql="${sql#* | }"
+					value="${sql%% |*}"
+					sql="${sql#* | }"
 					repetition="${sql%% |*}"
 					sql="${sql#* | }"
 					notification_delay="${sql%% |*}"
@@ -177,6 +179,7 @@ then
 					notification_period="${sql%% |*}"
 
 					echo $id - id
+					echo $value - value
 					echo $repetition - repetition
 					echo $notification_delay - notification delay
 					echo $notification_period - notification period
@@ -200,10 +203,13 @@ then
 					fi
 
 					echo --- Notification delay and period filter ---
+					
+					if [ "$notification_period" -gt "0" ] && [ "$value" != "0" ]
+					then
+						let "repetition = ($repetition % $notification_period)"
+					fi
 
-					let "repetition = ($repetition % $notification_period)"
-
-					if [ $repetition != $notification_delay ]
+					if [ "$repetition" != "$notification_delay" ]
 					then
 						continue
 					fi

@@ -82,11 +82,13 @@ class AdminDbApp extends \Atk4\Ui\App {
 		\Atk4\Ui\Button::addTo($item, [
 			'icon' => 'home'
 			, 'class.circular' => true
+			, 'content' => 'Home'
 		])->on('click', $this->jsRedirect($app_uri . '..', false));
 
 		\Atk4\Ui\Button::addTo($item, [
 			'icon' => 'clone outline'
 			, 'class.circular' => true
+			, 'content' => 'Clone'
 		])->on('click', $this->jsRedirect($tab_uri, true));
 
 		// Left tabs

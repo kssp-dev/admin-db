@@ -293,7 +293,7 @@ CREATE OR REPLACE VIEW "monitoring"."notifications" AS
 		WHERE "t"."is_alert"
 		GROUP BY "s"."uid"
 	)
-	SELECT "s"."id", "s"."time", "s"."uid", "s"."notified", "s"."repetition", "t"."notification_delay", "t"."notification_period"
+	SELECT "s"."id", "s"."time", "s"."uid", "s"."value", "s"."notified", "s"."repetition", "t"."notification_delay", "t"."notification_period"
 	FROM "w"
 	JOIN "monitoring"."series" "s"
 	ON "s"."time" = "wtime" AND "s"."uid" = "wuid"
