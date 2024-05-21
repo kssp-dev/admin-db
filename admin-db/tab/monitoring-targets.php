@@ -36,7 +36,7 @@ $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 $crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['id', 'enabled', 'name', 'script_uid', 'uid', 'period', 'target']
+			'displayFields' => ['id', 'enabled', 'name', 'script_uid', 'uid', 'period', 'target', 'duration']
 			, 'addFields' => ['enabled', 'script_id', 'name', 'uid', 'period', 'target', 'script_data']
 			, 'editFields' => ['enabled', 'script_id', 'name', 'uid', 'period', 'target', 'script_data']
 			, 'ipp' => 14
@@ -56,8 +56,8 @@ $crudOptions = [
 			'icon' => 'running',
 			'caption' => 'Test',
 			'ui' => 'basic green button',
-			'modal' => function ($p, $entity) {
-				new ModalMonitoringTest($entity, $p);
+			'modal' => function ($p, $entity, $crud) {
+				new ModalMonitoringTest($entity, $p, $crud);
 			}
 		]
 		, 'Remove Series' => [

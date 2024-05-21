@@ -13,6 +13,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 		global $db_user;
 		global $db_psw;
 		global $app_uri;
+		global $app_dir;
 		global $title;
 		global $tab_uri;
 		global $features;
@@ -150,16 +151,19 @@ class AdminDbApp extends \Atk4\Ui\App {
 						'Site'
 						, 'icon'=>'code'
 					], [$app_uri . 'tab/admin-site'], $menu);
+					
+					if (file_exists($app_dir . '../composer.phar')) {
+						$this->layout->addMenuItem([
+							'Database'
+							, 'icon'=>'database'
+						], [$app_uri . 'tab/admin-database'], $menu);
+					}
 				}
 				/*
 				$this->layout->addMenuItem([
 					'Export'
 					, 'icon'=>'file export'
 				], [$app_uri . 'tab/admin-export'], $menu);
-				$this->layout->addMenuItem([
-					'Database'
-					, 'icon'=>'database'
-				], [$app_uri . 'tab/admin-database'], $menu);
 				*/
 				$this->layout->addMenuItem([
 					'Users'

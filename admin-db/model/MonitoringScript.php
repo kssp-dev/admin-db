@@ -16,6 +16,7 @@ class MonitoringScript extends \Atk4\Data\Model {
 			  'script' => ['type' => 'text'],
 			  'updated' => ['type' => 'date'],
 			  'login',
+			  'duration' => ['type' => 'integer', 'readOnly' => true],
         ]);
         
         $this->getField('id')->neverSave = true;
@@ -29,7 +30,6 @@ class MonitoringScript extends \Atk4\Data\Model {
         
 		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_SAVE, function (\Atk4\Data\Model $m) {
 			global $app;
-			$m->set('updated', new DateTime());
 			$m->set('login', $app->auth->user->get('login'));
 		});
 		

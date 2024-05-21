@@ -4,10 +4,10 @@ require_once 'ModalLoader.php';
 
 class ModalMonitoringTest extends ModalLoader {
 
-    function __construct(Atk4\Data\Model $targetModel, Atk4\Ui\View $virtualPage = null) {
+    function __construct(Atk4\Data\Model $targetModel, Atk4\Ui\View $virtualPage, \Atk4\Ui\View $table) {
         parent::__construct(
 			'Monitoring Test'
-			, function (LoaderEx $p) use ($targetModel) {
+			, function (LoaderEx $p) use ($targetModel, $table) {
 				$targetModel->assertIsEntity();
 				
 				global $app, $app_dir;
@@ -33,6 +33,7 @@ class ModalMonitoringTest extends ModalLoader {
 					, 'MONITORING_USER' => getenv('MONITORING_USER')
 					, 'script_id' => $targetModel->get('script_id')
 					, 'target_ids' => $targetModel->get('id')
+					, 'call_function' => 'func_run_targets'
 				];
 
 				$param='';
@@ -43,11 +44,13 @@ class ModalMonitoringTest extends ModalLoader {
 				$cmd = 'bash "' . __DIR__  . '/../tool/monitoring-launcher.sh" "' . $param . '" 2>&1';
 				//print_r($cmd . "\n");
 
+				$startTime = microtime(true);
 				
 				$output = [];
 				$code = 0;
 				$res = exec($cmd, $output, $code);
 				
+				$duration = (int) ceil((microtime(true) - $startTime) * 1000);				
 				
 				$p->addHeader($targetModel->get('script_name') . ' [ ' . $targetModel->get('name') . ' ]', 3);
 				
@@ -55,7 +58,7 @@ class ModalMonitoringTest extends ModalLoader {
 					$seriesModel->addCondition('time', '>', $seriesEntity->get('time'));
 				}
 				
-				$p->addHeader($seriesModel->executeCountQuery() . ' Metrics Added', 4);
+				$p->addHeader($seriesModel->executeCountQuery() . ' metrics added, duration ' . $duration . ' ms', 4);
 				$p->addGrid($seriesModel, ['ipp' => 10], ['is_alert', 'value', 'uid', 'name', 'description']);
 				
 								
@@ -77,6 +80,8 @@ class ModalMonitoringTest extends ModalLoader {
 					->setInputAttr('style', 'font-family: monospace;');
 				
 				$p->addCloseButton($app);
+				
+				$table->jsReload();
 			}
 			, $virtualPage
 		);

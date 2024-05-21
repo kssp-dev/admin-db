@@ -17,7 +17,8 @@ class MonitoringTarget extends EmptyNullModel {
 			  'uid' => ['required' => true],
 			  'period' => ['type' => 'integer', 'required' => true],
 			  'target' => ['nullable' => false],
-			  'script_data' => ['type' => 'text']
+			  'script_data' => ['type' => 'text'],
+			  'duration' => ['type' => 'integer', 'readOnly' => true],
         ]);
         
         $this->getField('id')->neverSave = true;

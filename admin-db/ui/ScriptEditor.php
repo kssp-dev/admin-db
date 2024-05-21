@@ -15,6 +15,7 @@ class ScriptEditor extends Atk4\Ui\Js\JsModal {
 		$control->setInputAttr('style', 'font-family: monospace; font-weight: bold;');
 		
 		$form->onSubmit(function (Atk4\Ui\Form $form) use ($table) {
+			$form->model->set('updated', new DateTime());
 			$form->model->save();
 			
 			return new \Atk4\Ui\Js\JsBlock([

@@ -35,7 +35,7 @@ $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 $crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['is_alert', 'name', 'uid', 'description']
+			'displayFields' => ['is_alert', 'name', 'uid', 'notification_delay', 'notification_period', 'description']
 			, 'addFields' => ['is_alert', 'name', 'uid', 'notification_delay', 'notification_period', 'description']
 			, 'editFields' => ['is_alert', 'name', 'uid', 'notification_delay', 'notification_period', 'description']
 			, 'ipp' => 14

@@ -107,11 +107,14 @@ CREATE TABLE IF NOT EXISTS "monitoring"."instances" (
   "instance" VARCHAR(31) NOT NULL UNIQUE,
   "is_running" BOOLEAN NOT NULL DEFAULT FALSE,
   "run_count" INTEGER NOT NULL DEFAULT 0,
+  "script_timeout" SMALLINT NOT NULL DEFAULT 30 CHECK ("script_timeout" > 0),
+  "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0),
   "name" VARCHAR(63) NOT NULL UNIQUE
 );
 COMMENT ON TABLE "monitoring"."instances" IS 'Monitoring instances list';
 
---ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "is_running" BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "script_timeout" SMALLINT NOT NULL DEFAULT 30 CHECK ("script_timeout" > 0);
+ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
 
 
 CREATE TABLE IF NOT EXISTS "monitoring"."types" (
@@ -140,12 +143,13 @@ CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "uid" VARCHAR(31) NOT NULL UNIQUE CHECK ("uid" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL UNIQUE,
   "script" TEXT NOT NULL,
+  "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0),
   "updated" DATE NOT NULL DEFAULT NOW(),
   "login" VARCHAR(31) NOT NULL
 );
 COMMENT ON TABLE "monitoring"."scripts" IS 'Scripts run on monitoring instances';
 
---ALTER TABLE IF EXISTS "monitoring"."scripts" ADD COLUMN IF NOT EXISTS "login" VARCHAR(31) NOT NULL DEFAULT '';
+ALTER TABLE IF EXISTS "monitoring"."scripts" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
 --ALTER TABLE IF EXISTS "monitoring"."scripts" ALTER COLUMN "login" DROP DEFAULT;
 
 
@@ -156,6 +160,7 @@ CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
   "uid" VARCHAR(31) NOT NULL CHECK ("uid" ~ '^[^@#\s]+$'),
   "name" VARCHAR(31) NOT NULL,
   "period" SMALLINT NOT NULL DEFAULT 5 CHECK ("period" > 0),
+  "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0),
   "target" VARCHAR(127) NOT NULL,
   "script_data" TEXT NULL
 );
@@ -164,6 +169,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "targets_name_script_id_key" ON "monitoring"."
 CREATE UNIQUE INDEX IF NOT EXISTS "targets_target_script_id_key" ON "monitoring"."targets" ("target", "script_id");
 COMMENT ON TABLE "monitoring"."targets" IS 'Data sources scripts fetch information from';
 
+ALTER TABLE IF EXISTS "monitoring"."targets" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
 
 CREATE TABLE IF NOT EXISTS "monitoring"."log" (
   "id" SERIAL PRIMARY KEY,
@@ -178,7 +184,7 @@ COMMENT ON TABLE "monitoring"."log" IS 'Debug information';
 
 CREATE TABLE IF NOT EXISTS "monitoring"."series" (
   "id" SERIAL PRIMARY KEY,
-  "target_id" INTEGER NOT NULL REFERENCES "monitoring"."targets",
+  "target_id" INTEGER NULL REFERENCES "monitoring"."targets",
   "type_id" INTEGER NOT NULL REFERENCES "monitoring"."types",
   "time" TIMESTAMP NOT NULL DEFAULT NOW(),
   "uid" VARCHAR(127) NOT NULL CHECK ("uid" ~ '^[^@#\s]+@[^@#\s]+@[^@#\s]+@?[^@#\s]*$'),
@@ -192,6 +198,8 @@ CREATE TABLE IF NOT EXISTS "monitoring"."series" (
 CREATE INDEX IF NOT EXISTS "series_time_idx" ON "monitoring"."series" ("time");
 CREATE INDEX IF NOT EXISTS "series_uid_idx" ON "monitoring"."series" ("uid");
 COMMENT ON TABLE "monitoring"."series" IS 'Time series of metrics and alerts';
+
+ALTER TABLE IF EXISTS "monitoring"."series" ALTER COLUMN "target_id" DROP NOT NULL;
 
 --ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "type_id" INTEGER NOT NULL REFERENCES "monitoring"."types" DEFAULT 1;
 --ALTER TABLE IF EXISTS "monitoring"."series" ALTER COLUMN "type_id" DROP DEFAULT;

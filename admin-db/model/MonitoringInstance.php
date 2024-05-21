@@ -12,7 +12,9 @@ class MonitoringInstance extends \Atk4\Data\Model {
         $this->addFields([
 			  'enabled' => ['type' => 'boolean', 'nullable' => false],
 			  'instance' => ['required' => true],
-			  'name' => ['required' => true]
+			  'name' => ['required' => true],
+			  'script_timeout' => ['required' => true],
+			  'duration' => ['type' => 'integer', 'readOnly' => true],
         ]);
         
         $this->getField('id')->neverSave = true;
@@ -34,6 +36,10 @@ class MonitoringInstance extends \Atk4\Data\Model {
 			$m = $m->tryLoadAny();
 			if ($m != null && $m->get('id') != $this->get('id')) {
 				return ['name' => 'Must have unique name'];
+			}
+			
+			if ($this->get('script_timeout') <= 0) {
+				return ['script_timeout' => 'Must be a positive integer'];
 			}
 		});
     }
