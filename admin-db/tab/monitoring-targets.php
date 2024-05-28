@@ -57,7 +57,7 @@ $crudOptions = [
 			'caption' => 'Test',
 			'ui' => 'basic green button',
 			'modal' => function ($p, $entity, $crud) {
-				new ModalMonitoringTest($entity, $p, $crud);
+				new MonitoringTargetTest($entity, $p, $crud);
 			}
 		]
 		, 'Remove Series' => [

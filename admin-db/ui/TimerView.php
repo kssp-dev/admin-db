@@ -1,7 +1,7 @@
 <?php
 
 class TimerView extends \Atk4\Ui\View {
-	public $interval = 60000;	// ms
+	public $interval = 720000;	// ms
 	public $query = 'touch';
 	public $js = <<<'EOF'
 		var s = Date.now();

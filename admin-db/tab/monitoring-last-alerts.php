@@ -36,7 +36,16 @@ $crudOptions = [
 	]
 	, 'quickSearch' => ['uid', 'name', 'description']
 	, 'menuActions' => []
-	, 'columnActions' => []
+	, 'columnActions' => [
+		'Notification Test' => [
+			'icon' => 'bell outline',
+			'caption' => 'Notify',
+			'ui' => 'basic green button',
+			'modal' => function ($p, $entity, $crud) {
+				new MonitoringNotificationTest($entity, $p, $crud);
+			}
+		]
+	]
 ];
 
 $crud->setModel($model, $crudOptions);

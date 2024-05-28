@@ -27,11 +27,6 @@ class MonitoringScript extends \Atk4\Data\Model {
 		])->addFields([
 			'instance'
 		]);
-        
-		$this->onHook(\Atk4\Data\Model::HOOK_BEFORE_SAVE, function (\Atk4\Data\Model $m) {
-			global $app;
-			$m->set('login', $app->auth->user->get('login'));
-		});
 		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
 			if (preg_match('/^[^@#\s]+$/', $this->get('uid')) != 1) {

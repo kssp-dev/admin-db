@@ -347,10 +347,10 @@ func_get_type () {
 	sql="${sql#* |}"
 	type_description="$(echo $sql | sed 's/\s*+\s|\s|\s/\n/g')"
 
-	echo $type_id - type_id
-	echo $type_uid - type_uid
-	echo $type_name - type name
-	echo $type_description - type description, optional
+	echo +$type_id+ type_id
+	echo +$type_uid+ type_uid
+	echo +$type_name+ type name
+	echo +$type_description+ type description, optional
 	
 } # func_get_type
 
@@ -397,10 +397,10 @@ func_parse_metric () {
 	description="${description#"${description%%[![:space:]]*}"}"
 	description="${description%"${description##*[![:space:]]}"}"
 
-	echo $value - metric value
-	echo $type_uid - type uid
-	echo $object - metric object name, optional
-	echo $description - metric description, optional
+	echo +$value+ metric value
+	echo +$type_uid+ type uid
+	echo +$object+ metric object name, optional
+	echo +$description+ metric description, optional
 
 	if [ -n "$value" ] && [ -n "$type_uid" ]
 	then
@@ -451,8 +451,8 @@ func_run_target () {
 	local script_uid="${sql%% *}"
 	local script_name="${sql##* | }"
 
-	echo $script_uid - script uid
-	echo $script_name - script name
+	echo +$script_uid+ script uid
+	echo +$script_name+ script name
 
 	echo --- Get target data ---
 
@@ -477,10 +477,10 @@ func_run_target () {
 	local target="${sql##* | }"
 	target="${target%"${target##*[![:space:]]}"}"
 
-	echo $target - target
-	echo $target_uid - target uid
-	echo $target_short_name - target short name
-	echo $target_name - target name
+	echo +$target+ target
+	echo +$target_uid+ target uid
+	echo +$target_short_name+ target short name
+	echo +$target_name+ target name
 
 	echo --- Write data file ---
 
@@ -593,6 +593,8 @@ func_run_targets () {
 	echo $script_id - script ID
 	echo $target_ids - target IDs
 
+	echo --- Create temp directory ---
+
 	local temp_dir=$(mktemp -d)
 	if [ ! -d "$temp_dir" ]
 	then
@@ -600,6 +602,7 @@ func_run_targets () {
 		code=203
 		return
 	fi
+	echo $temp_dir
 
 	echo --- Write script file ---
 
@@ -1004,20 +1007,23 @@ func_notify () {
 			echo $sql
 
 			id="${sql%% *}"
-			sql="${sql#* | }"
+			sql="${sql#* |}"
 			value="${sql%% |*}"
-			sql="${sql#* | }"
+			value="${value#"${value%%[![:space:]]*}"}"
+			sql="${sql#* |}"
 			repetition="${sql%% |*}"
-			sql="${sql#* | }"
+			repetition="${repetition#"${repetition%%[![:space:]]*}"}"
+			sql="${sql#* |}"
 			notification_delay="${sql%% |*}"
-			sql="${sql#* | }"
-			notification_period="${sql%% |*}"
+			notification_delay="${notification_delay#"${notification_delay%%[![:space:]]*}"}"
+			sql="${sql#* |}"
+			notification_period="${sql#"${sql%%[![:space:]]*}"}"
 
-			echo $id - id
-			echo $value - value
-			echo $repetition - repetition
-			echo $notification_delay - notification delay
-			echo $notification_period - notification period
+			echo +$id+ id
+			echo +$value+ value
+			echo +$repetition+ repetition
+			echo +$notification_delay+ notification delay
+			echo +$notification_period+ notification period
 
 			echo --- Remove the notification from queue ---
 
@@ -1043,6 +1049,9 @@ func_notify () {
 			then
 				let "repetition = ($repetition % $notification_period)"
 			fi
+			
+			echo +$repetition+ repetition
+			echo +$notification_delay+ notification delay
 
 			if [ "$repetition" != "$notification_delay" ]
 			then
@@ -1056,22 +1065,24 @@ func_notify () {
 			sql=$($sql_cmd "$sql")
 			code=$?
 			sql="${sql#"${sql%%[![:space:]]*}"}"
-			#echo $sql
+			echo $sql
 
 			export notification_uid="${sql%% *}"
-			sql="${sql#* | }"
-			export notification_value="${sql%% *}"
-			sql="${sql#* | }"
-			export notification_name="${sql%% |*}"
 			sql="${sql#* |}"
-			export notification_description="$(echo $sql | sed 's/\s*+\s|\s|\s/\n/g')"
+			local notification_value="${sql%% |*}"
+			export notification_value="${notification_value#"${notification_value%%[![:space:]]*}"}"
+			sql="${sql#* |}"
+			local notification_name="${sql%% |*}"
+			export notification_name="${notification_name#"${notification_name%%[![:space:]]*}"}"
+			sql="${sql#* |}"
+			export notification_description="$(echo $sql | sed 's/\s*+\s|\s|\s|\s/\n/g')"
 
-			echo $notification_uid - notification uid
-			echo $notification_value - notification value
-			echo $notification_name - notification name
-			echo $notification_description - notification description
+			echo +$notification_uid+ notification uid
+			echo +$notification_value+ notification value
+			echo +$notification_name+ notification name
+			echo +$notification_description+ notification description
 
-			find "$notify_dir/" -maxdepth 1 -type f -iname '*.sh' | sort | xargs bash
+			find "$notify_dir/" -maxdepth 1 -type f -iname '*.sh' | sort | xargs -r bash
 
 			sleep 1
 		done
@@ -1131,9 +1142,9 @@ func_instance () {
 		sql="${sql#* | }"
 		local script_timeout="${sql#"${sql%%[![:space:]]*}"}"
 
-		echo $instance_id - instance_id
-		echo $run_count - run_count
-		echo $script_timeout - script_timeout
+		echo +$instance_id+ instance_id
+		echo +$run_count+ run_count
+		echo +$script_timeout+ script_timeout
 
 		let "run_count = ($run_count + 1) % 3628800"
 

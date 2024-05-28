@@ -17,13 +17,14 @@ class MonitoringSeries extends EmptyNullModel {
 			  'uid' => ['neverSave' => true],
 			  'short_name' => ['neverSave' => true],
 			  'value' => ['type' => 'integer', 'neverSave' => true],
-			  'description' => ['type' => 'text', 'neverSave' => true]
+			  'description' => ['type' => 'text', 'neverSave' => true],			  
+			  'repetition' => ['type' => 'integer', 'nullable' => false],
+			  'notified' => ['type' => 'boolean', 'nullable' => false]
         ]);
         
         $this->getField('id')->neverSave = true;
 		
 		$this->hasOne('target_id', [
-			'required' => true,
 			'model' => new MonitoringTarget($this->getPersistence())
 		]);
 		

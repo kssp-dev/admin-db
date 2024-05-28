@@ -11,9 +11,9 @@ class LoaderEx extends Atk4\Ui\Loader {
 		Atk4\Ui\Header::addTo($this, [$text, 'size' => $size]);
     }
 	
-	function addTextarea($output) {
+	function addTextarea($output, $rows = 14) {
 		$text = is_array($output) ? implode("\n", $output) : strval($output);
-		$rows = min(14, substr_count($text, "\n") + 1);
+		$rows = min($rows, substr_count($text, "\n") + 1);
 		
 		$segment = Atk4\Ui\View::addTo($this, ['ui' => 'form']);
 		

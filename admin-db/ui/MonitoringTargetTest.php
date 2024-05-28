@@ -2,9 +2,9 @@
 
 require_once 'ModalLoader.php';
 
-class ModalMonitoringTest extends ModalLoader {
+class MonitoringTargetTest extends ModalLoader {
 
-    function __construct(Atk4\Data\Model $targetModel, Atk4\Ui\View $virtualPage, \Atk4\Ui\View $table) {
+    function __construct(\Atk4\Data\Model $targetModel, \Atk4\Ui\View $virtualPage, \Atk4\Ui\View $table) {
         parent::__construct(
 			'Monitoring Test'
 			, function (LoaderEx $p) use ($targetModel, $table) {
