@@ -4,6 +4,7 @@
 
 $app_dir = __DIR__ . '/';
 
+//error_log(print_r("_POST " . print_r($_POST, true), true));
 //error_log(print_r("_SERVER " . print_r($_SERVER, true), true));
 
 $server_root_length = strlen($_SERVER['DOCUMENT_ROOT']);

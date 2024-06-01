@@ -3,21 +3,21 @@
 class TimerView extends \Atk4\Ui\View {
 	public $interval = 720000;	// ms
 	public $query = 'touch';
-	public $js = <<<'EOF'
+	public $js = '
 		var s = Date.now();
 		var i = setInterval(
 			function () {
 				var p = Date.now() - s;
 				var el = $([]);
-				//el.find('.detail').text(p + 'ms');
+				//el.find(".detail").text(p + "ms");
 				
 				var anHttpRequest = new XMLHttpRequest();
 				
 				anHttpRequest.onreadystatechange = function() {
 					//if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200) {
-						el.find('.detail').text(anHttpRequest.responseText);
+						el.find(".detail").text(anHttpRequest.responseText);
 					//} else {
-						//el.find('.detail').text(anHttpRequest.status);
+						//el.find(".detail").text(anHttpRequest.status);
 					//}
 				}
 
@@ -25,7 +25,7 @@ class TimerView extends \Atk4\Ui\View {
 				anHttpRequest.send( null );
 			}
 		, %INTERVAL%);
-	EOF;
+	';
 
 	#[\Override]
 	protected function init(): void

@@ -13,7 +13,7 @@ class MonitoringScript extends \Atk4\Data\Model {
 			  'enabled' => ['type' => 'boolean', 'nullable' => false],
 			  'name' => ['required' => true],
 			  'uid' => ['required' => true],
-			  'script' => ['type' => 'text'],
+			  'script' => ['type' => 'text', 'ui' => ['form' => [AceEditor::class]]],
 			  'updated' => ['type' => 'date'],
 			  'login',
 			  'duration' => ['type' => 'integer', 'readOnly' => true],

@@ -48,8 +48,7 @@ class MonitoringNotificationTest extends ModalLoader {
 				
 				$p->addHeader($alertModel->get('name'), 3);
 					
-				
-				//$p->addHeader('Notify Log', 4);								
+									
 				$p->addTextarea($output, 25)
 					->setInputAttr('style', 'font-family: monospace;');
 				
