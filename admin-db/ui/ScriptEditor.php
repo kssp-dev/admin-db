@@ -20,7 +20,8 @@ class ScriptEditor extends \Atk4\Ui\Js\JsModal {
 		$form = \Atk4\Ui\Form::addTo($vp);
 		$form->setModel($entity, [$scriptField]);
 		$control = $form->getControl($scriptField);
-		$control->height = 80;
+		$control->height = 79;
+		$control->fontSize = 15;
 		$control->caption = $entity->get('name');
 		
 		$form->onSubmit(function (\Atk4\Ui\Form $form) use ($table, $scriptField, $bakupScript) {
