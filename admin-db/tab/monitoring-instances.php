@@ -16,7 +16,7 @@ $model->setOrder('name');
 
 $model->getUserAction('delete')->confirmation = true;
 $model->getUserAction('delete')->enabled = static function (\Atk4\Data\Model $entity) {
-		return $entity->countScripts() === 0;
+		return $entity->countTargets() === 0;
 	};
 		
 if (! $app->auth->user->isLoaded()) {

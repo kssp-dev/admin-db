@@ -36,20 +36,20 @@ $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 $crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['id', 'enabled', 'name', 'script_uid', 'uid', 'period', 'target', 'duration']
-			, 'addFields' => ['enabled', 'script_id', 'name', 'uid', 'period', 'target', 'script_data']
-			, 'editFields' => ['enabled', 'script_id', 'name', 'uid', 'period', 'target', 'script_data']
+			'displayFields' => ['id', 'enabled', 'name', 'script_uid', 'uid', 'instance', 'period', 'target', 'duration']
+			, 'addFields' => ['enabled', 'script_id', 'name', 'uid', 'instance_id', 'period', 'target', 'script_data']
+			, 'editFields' => ['enabled', 'script_id', 'name', 'uid', 'instance_id', 'period', 'target', 'script_data']
 			, 'ipp' => 14
 		]
 	]
-	, 'quickSearch' => ['id', 'name', 'uid', 'script_uid', 'target']
+	, 'quickSearch' => ['id', 'name', 'uid', 'script_uid', 'target', 'instance']
 	, 'menuActions' => []
 	, 'columnActions' => [
 		'Clone Target' => [
 			'icon' => 'clone outline',
 			'disabled' => ! $app->auth->user->isLoaded(),
 			'modal' => function ($p, $entity, $crud) {
-				new ModalCloner($entity, $p, $crud, ['name', 'uid', 'target', 'script_id']);
+				new ModalCloner($entity, $p, $crud, ['name', 'uid', 'target', 'script_id', 'instance_id', 'period']);
 			}
 		]
 		, 'Monitoring Test' => [

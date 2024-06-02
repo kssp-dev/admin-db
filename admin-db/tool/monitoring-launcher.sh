@@ -21,7 +21,6 @@ db_table_notifications='monitoring.notifications'
 
 # special uids
 
-unknown_type_uid='type-unknown'
 script_timeout_type_uid='script-timeout'
 script_error_type_uid='script-error'
 
@@ -267,10 +266,10 @@ func_insert_series () {
 
 
 ###
-# Returns type by UID
+# Returns type by UID.
+# Adds it if not exists.
 #
 # @param $type_uid - type UID to find
-# @param $alert_type_uid - if $type_uid not found in the database
 # @param $alert_type_name - if $type_uid not found in the database
 #
 # @return $type_id - type_id
@@ -298,23 +297,9 @@ func_get_type () {
 
 	if [ -z "$sql" ]
 	then
-		echo --- Type not found - get alert type ---
-		
-		type_uid="$alert_type_uid"
+		echo --- Insert type ---
 
-		sql="SELECT id, name, description FROM $db_table_types WHERE uid = '$type_uid'"
-		echo $sql
-		sql=$($sql_cmd "$sql")
-		code=$?
-		sql="${sql#"${sql%%[![:space:]]*}"}"
-		echo $sql
-	fi
-
-	if [ -z "$sql" ]
-	then
-		echo --- Insert alert type ---
-
-		sql="INSERT INTO $db_table_types (uid, is_alert, name, notification_delay, notification_period) VALUES ('$type_uid', TRUE, '$alert_type_name', 0, 60)"
+		sql="INSERT INTO $db_table_types (uid, is_alert, name, notification_delay, notification_period, description) VALUES ('$type_uid', TRUE, '$alert_type_name', 0, 60, '$type_uid')"
 		echo $sql
 		sql=$($sql_cmd "$sql")
 		code=$?
@@ -325,7 +310,7 @@ func_get_type () {
 			return
 		fi
 		
-		echo --- Get alert type again ---
+		echo --- Get type again ---
 
 		sql="SELECT id, name, description FROM $db_table_types WHERE uid = '$type_uid'"
 		echo $sql
@@ -404,8 +389,7 @@ func_parse_metric () {
 
 	if [ -n "$value" ] && [ -n "$type_uid" ]
 	then
-		local alert_type_uid="$unknown_type_uid"
-		local alert_type_name="UNKNOWN TYPE"
+		local alert_type_name="UNKNOWN MONITORING TYPE"
 	
 		func_get_type
 		func_insert_series
@@ -415,11 +399,121 @@ func_parse_metric () {
 
 
 ###
+# Returns command to run a script
+#
+# @param $script_path - script file is to run
+#
+# @return $cmd - command to run the script
+# @return $code - error code
+###
+
+func_script_run_command () {
+
+	echo === Script command ===
+	
+	echo $script_path
+	
+	local line=""
+	code=0
+	cmd=""
+
+	IFS= read -r line < "$script_path"
+
+	echo $line
+
+	if [[ "$line" =~ ^#!\/.+\/bash[[:space:]]*$ ]]
+	then
+		echo --- Bash script ---
+
+		cmd='bash "'$script_path'"'
+	elif [[ "$line" =~ ^#!\/.+[[:space:]]+python.*$ ]]
+	then
+		echo --- Python script ---
+
+		cmd='python3 "'$script_path'"'
+	elif [[ "$line" =~ ^\<\?php[[:space:]]*$ ]]
+	then
+		echo --- PHP script ---
+
+		cmd='php "'$script_path'"'
+	elif [[ "$line" =~ ^#!\/.+\/perl[[:space:]]*$ ]]
+	then
+		echo --- Perl script ---
+
+		cmd='perl "'$script_path'"'
+	else
+		echo !!! Unknown script format $script_id !!!
+		cat "$script_path"
+		code=205
+	fi
+	
+} # func_script_run_command
+
+
+###
+# Executes command
+#
+# @param $sudo_user - user to run the command of
+# @param $temp_dir - script temp files directory
+# @param $script_path - script file path
+# @param $out_path - file to save script output in
+#
+# @return $code - error code
+###
+
+func_run_command () {
+
+	echo === Run command ===
+	
+	if [ -n "$sudo_user" ] && [ "$(whoami)" == "$sudo_user" ]
+	then
+		sudo_user=""
+	fi
+
+	if [ -n "$sudo_user" ]
+	then
+		chmod -R 777 "$temp_dir/"
+	fi
+
+	ls -l "$temp_dir" | grep ":"
+	
+	local cmd=""
+	func_script_run_command
+	if [ $code != 0 ]
+	then
+		return
+	fi
+
+	if [ -n "$sudo_user" ]
+	then
+		echo --- Exec by sudo user $sudo_user ---
+
+		cmd='sudo -E -u "'$sudo_user'" '$cmd' "'$1'" "'$2'"'
+	else
+		echo --- Exec by current user $(whoami) ---
+
+		cmd=$cmd' "'$1'" "'$2'"'
+	fi
+
+	echo $cmd
+	if [ -n "$out_path" ]
+	then
+		eval $cmd 2>&1 > "$out_path"
+	else
+		eval $cmd
+	fi
+	code=$?
+	
+} # func_run_command
+
+
+###
 # Run monitoring target of a script
 #
 # @param $script_id - script_id
 # @param $target_id - target_id
 # @param $temp_dir - script temp files directory
+# @param $script_path - script file path
 #
 # @return $code - error code
 ###
@@ -498,36 +592,9 @@ func_run_target () {
 	touch "$out_path"
 
 	local sudo_user="$MONITORING_USER"
-
-	if [ -n "$sudo_user" ] && [ "$(whoami)" == "$sudo_user" ]
-	then
-		sudo_user=""
-	fi
-
-	if [ -n "$sudo_user" ]
-	then
-		chmod -R 777 "$temp_dir/"
-	fi
-
-	ls -l "$temp_dir" | grep ":"
+	func_run_command "$target" "$data_path"
+	local script_code=$code
 	
-	local cmd=""
-
-	if [ -n "$sudo_user" ]
-	then
-		echo --- Exec by sudo user $sudo_user ---
-
-		cmd='sudo -E -u "'$sudo_user'" bash "'$temp_dir/script.sh'" "'$target'" "'$data_path'"'
-	else
-		echo --- Exec by current user $(whoami) ---
-
-		cmd='bash "'$temp_dir/script.sh'" "'$target'" "'$data_path'"'
-	fi
-
-	echo $cmd
-	eval $cmd 2>&1 > "$out_path"
-	local script_code=$?
-
 	echo --- Write log ---
 
 	sql="INSERT INTO $db_table_log (target_id, code, output) VALUES ($target_id, $script_code, '$(sed s/\'/\'\'/g "$out_path")')"
@@ -548,7 +615,6 @@ func_run_target () {
 	if [ $script_code != 0 ]
 	then
 		local type_uid="$script_error_type_uid"
-		local alert_type_uid="$script_error_type_uid"
 		local alert_type_name="SCRIPT ERROR CODE"
 
 		func_get_type
@@ -622,51 +688,6 @@ func_run_targets () {
 
 	if [ $code == 0 ]
 	then
-		echo --- Write script runner ---
-
-		local runner_path="$script_path.sh"
-
-		echo '#!/bin/bash' > "$runner_path"
-		
-		local line=""
-
-		IFS= read -r line < "$script_path"
-
-		echo $line
-
-		if [[ "$line" =~ ^#!\/.+\/bash[[:space:]]*$ ]]
-		then
-			echo --- Bash script runner ---
-
-			echo bash '"'$script_path'"' '"$1"' '"$2"' >> "$runner_path"
-		elif [[ "$line" =~ ^#!\/.+[[:space:]]+python.*$ ]]
-		then
-			echo --- Python script runner ---
-
-			echo python3 '"'$script_path'"' '"$1"' '"$2"' >> "$runner_path"
-		elif [[ "$line" =~ ^\<\?php[[:space:]]*$ ]]
-		then
-			echo --- PHP script runner ---
-
-			echo php '"'$script_path'"' '"$1"' '"$2"' >> "$runner_path"
-		elif [[ "$line" =~ ^#!\/.+\/perl[[:space:]]*$ ]]
-		then
-			echo --- Perl script runner ---
-
-			echo perl '"'$script_path'"' '"$1"' '"$2"' >> "$runner_path"
-		else
-			echo !!! Unknown script format $script_id !!!
-			cat "$script_path"
-			code=205
-		fi
-
-		echo 'exit $?' >> "$runner_path"
-	fi
-
-	if [ $code == 0 ]
-	then
-		cat "$runner_path"
-		
 		local target_id=0
 
 		for target_id in ${target_ids//${list_delimeter}/ }
@@ -710,6 +731,7 @@ func_run_targets_duration () {
 ###
 # Run all targets of a script in separate process
 #
+# @param $instance_id - instance ID
 # @param $script_id - script_id
 # @param $run_count - instance run count
 #
@@ -721,11 +743,12 @@ func_run_script () {
 
 	echo === Run script ===
 	
+	echo $instance_id - instance ID
 	echo $script_id - script ID
 
 	echo --- Get target ids ---
 
-	local sql="SELECT id, period FROM $db_table_targets WHERE script_id = $script_id AND enabled"
+	local sql="SELECT id, period FROM $db_table_targets WHERE script_id = $script_id AND instance_id = $instance_id AND enabled"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
@@ -798,7 +821,6 @@ func_timeout_process () {
 	sleep $script_timeout
 
 	local type_uid="$script_timeout_type_uid"
-	local alert_type_uid="$script_timeout_type_uid"
 	local alert_type_name="SCRIPT TIMEOUT"
 
 	func_get_type
@@ -875,7 +897,7 @@ func_run_scripts () {
 	
 	echo --- Get script ids ---
 
-	local sql="SELECT id FROM $db_table_scripts WHERE instance_id = $instance_id AND enabled"
+	local sql="SELECT s.id FROM $db_table_scripts s INNER JOIN $db_table_targets t ON s.id = t.script_id WHERE t.instance_id = $instance_id AND t.enabled AND s.enabled GROUP BY s.id"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
@@ -886,6 +908,7 @@ func_run_scripts () {
 	fi
 	
 	sql="${sql#"${sql%%[![:space:]]*}"}"
+	echo $sql
 
 	local pids=""
 	local timeout_pids=""
@@ -1082,7 +1105,16 @@ func_notify () {
 			echo +$notification_name+ notification name
 			echo +$notification_description+ notification description
 
-			find "$notify_dir/" -maxdepth 1 -type f -iname '*.sh' | sort | xargs -r bash
+			local script_path=""
+			
+			find "$notify_dir/" -maxdepth 1 -type f | sort |
+			while IFS= read -r script_path
+			do
+				func_script_run_command
+				if [ $code == 0 ]; then
+					eval $cmd
+				fi
+			done
 
 			sleep 1
 		done
@@ -1137,9 +1169,10 @@ func_instance () {
 	sql="${sql#"${sql%%[![:space:]]*}"}"
 	if [ -n "$sql" ]; then
 		local instance_id="${sql%% *}"
-		sql="${sql#* | }"
+		sql="${sql#* |}"
 		local run_count="${sql%% |*}"
-		sql="${sql#* | }"
+		run_count="${run_count#"${run_count%%[![:space:]]*}"}"
+		sql="${sql#* |}"
 		local script_timeout="${sql#"${sql%%[![:space:]]*}"}"
 
 		echo +$instance_id+ instance_id

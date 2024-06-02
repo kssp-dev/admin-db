@@ -21,14 +21,9 @@ class MonitoringScript extends \Atk4\Data\Model {
         
         $this->getField('id')->neverSave = true;
 		
-		$this->hasOne('instance_id', [
-			'required' => true,
-			'model' => new MonitoringInstance($this->getPersistence())
-		])->addFields([
-			'instance'
-		]);
-		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
+			global $app;
+			
 			if (preg_match('/^[^@#\s]+$/', $this->get('uid')) != 1) {
 				return ['uid' => '@, # or blank forbidden'];
 			}
@@ -49,6 +44,15 @@ class MonitoringScript extends \Atk4\Data\Model {
 			
 			if (empty($this->get('script'))) {
 				$this->set('script', '');
+			}
+			
+			if (is_null($this->get('enabled'))) {
+				$this->set('enabled', false);
+			}
+			
+			if (is_null($this->get('updated'))) {
+				$this->set('login', $app->auth->user->get('login'));
+				$this->set('updated', new DateTime());
 			}
 		});
 

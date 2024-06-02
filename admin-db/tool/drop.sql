@@ -26,8 +26,8 @@ DROP VIEW IF EXISTS "monitoring"."alerts";
 
 DROP TABLE IF EXISTS "monitoring"."series";
 DROP TABLE IF EXISTS "monitoring"."log";
-DROP TABLE IF EXISTS "monitoring"."types";
 DROP TABLE IF EXISTS "monitoring"."targets";
+DROP TABLE IF EXISTS "monitoring"."types";
 DROP TABLE IF EXISTS "monitoring"."scripts";
 DROP TABLE IF EXISTS "monitoring"."instances";
 

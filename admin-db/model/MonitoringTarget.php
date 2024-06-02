@@ -31,6 +31,13 @@ class MonitoringTarget extends EmptyNullModel {
 			'script_name' => 'name'
 		]);
 		
+		$this->hasOne('instance_id', [
+			'required' => true,
+			'model' => new MonitoringInstance($this->getPersistence())
+		])->addFields([
+			'instance'
+		]);
+		
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
 			$m = clone $this->getModel();
 			$m->addCondition('script_id', $this->get('script_id'));

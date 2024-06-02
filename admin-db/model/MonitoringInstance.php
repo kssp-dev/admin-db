@@ -44,12 +44,12 @@ class MonitoringInstance extends \Atk4\Data\Model {
 		});
     }
     
-    public function countScripts() {
+    public function countTargets() {
 		$this->assertIsEntity();
 		
 		global $app;
 		
-		$model = new MonitoringScript($app->db);
+		$model = new MonitoringTarget($app->db);
 		$model->addCondition('instance_id', $this->get('id'));
 		$count = $model->executeCountQuery();
 		

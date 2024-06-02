@@ -46,7 +46,15 @@ class ScriptEditor extends \Atk4\Ui\Js\JsModal {
 		
 		\Atk4\Ui\Button::addTo($form, [
 			'Close'
-		])->on('click', $form->getApp()->jsRedirect($tab_uri, false));
+			, 'icon' => 'times'
+		])->addClass('ui blue basic button')
+		->on('click', $form->getApp()->jsRedirect($tab_uri, false));
+		
+		\Atk4\Ui\Button::addTo($form, [
+			'Targets'
+			, 'icon' => 'arrow right'
+		])->addClass('ui right labeled icon right floated blue basic button')
+		->on('click', $form->getApp()->jsRedirect('monitoring-targets', true));
 		
         parent::__construct(
 			'Script Editor'

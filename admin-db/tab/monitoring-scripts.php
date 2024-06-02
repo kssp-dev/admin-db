@@ -37,20 +37,20 @@ $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 $crudOptions = [
 	[
 		'_crud' => [
-			'displayFields' => ['id', 'enabled', 'name', 'instance', 'uid', 'duration', 'updated', 'login']
-			, 'addFields' => ['enabled', 'instance_id', 'name', 'uid']
-			, 'editFields' => ['enabled', 'instance_id', 'name', 'uid']
+			'displayFields' => ['id', 'enabled', 'name', 'uid', 'duration', 'updated', 'login']
+			, 'addFields' => ['name', 'uid']
+			, 'editFields' => ['enabled', 'name', 'uid']
 			, 'ipp' => 14
 		]
 	]
-	, 'quickSearch' => ['id', 'name', 'uid', 'instance', 'updated', 'login']
+	, 'quickSearch' => ['id', 'name', 'uid', 'updated', 'login']
 	, 'menuActions' => []
 	, 'columnActions' => [
 		'Clone Script' => [
 			'icon' => 'clone outline',
 			'disabled' => ! $app->auth->user->isLoaded(),
 			'modal' => function ($p, $entity, $crud) {
-				new ModalCloner($entity, $p, $crud, ['name', 'uid', 'instance_id']);
+				new ModalCloner($entity, $p, $crud, ['name', 'uid']);
 			}
 		]
 		, 'Script Editor' => [
