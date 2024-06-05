@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS citext;
 -- Primary ip is a main ip of a network interface, serving to link any services (primary_ip is NULL).
 -- Secondary ip is another ip of the network inferface, legacy or test or other purpose configured.
 -- In the case primary_ip field points to primary ip of the secondary ip's network interface.
-CREATE TABLE IF NOT EXISTS "public"."ip" ( 
+CREATE TABLE IF NOT EXISTS "public"."ip" (
   "ip" VARCHAR(15) NOT NULL,
   "primary_ip" VARCHAR(15) NULL,
   CONSTRAINT "ip_pkey" PRIMARY KEY ("ip"),
@@ -19,7 +19,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "ip_ip_primary_ip_key" ON "public"."ip" ("ip",
 CREATE OR REPLACE VIEW "public"."primary_ip" AS SELECT "ip" FROM "ip" WHERE "primary_ip" IS NULL;
 
 
-CREATE TABLE IF NOT EXISTS "public"."scripts" ( 
+CREATE TABLE IF NOT EXISTS "public"."scripts" (
   "id" SERIAL,
   "name" VARCHAR(80) NOT NULL,
   "script_ip" VARCHAR(15) NOT NULL,
@@ -161,14 +161,16 @@ CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
   "name" VARCHAR(31) NOT NULL,
   "period" SMALLINT NOT NULL DEFAULT 5 CHECK ("period" > 0),
   "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0),
-  "target" VARCHAR(127) NOT NULL,
+  "target" VARCHAR(127) NULL,
   "script_data" TEXT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "targets_uid_script_id_key" ON "monitoring"."targets" ("uid", "script_id");
 CREATE UNIQUE INDEX IF NOT EXISTS "targets_name_script_id_key" ON "monitoring"."targets" ("name", "script_id");
-CREATE UNIQUE INDEX IF NOT EXISTS "targets_target_script_id_key" ON "monitoring"."targets" ("target", "script_id");
+--CREATE UNIQUE INDEX IF NOT EXISTS "targets_target_script_id_key" ON "monitoring"."targets" ("target", "script_id");
 COMMENT ON TABLE "monitoring"."targets" IS 'Data sources scripts fetch information from';
 
+ALTER TABLE IF EXISTS "monitoring"."targets" DROP CONSTRAINT IF EXISTS "targets_target_script_id_key";
+ALTER TABLE IF EXISTS "monitoring"."targets" ALTER COLUMN "target" DROP NOT NULL;
 --ALTER TABLE IF EXISTS "monitoring"."targets" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
 
 CREATE TABLE IF NOT EXISTS "monitoring"."log" (
@@ -242,7 +244,7 @@ CREATE OR REPLACE VIEW "monitoring"."last_series" AS
 		FROM "monitoring"."series" "s"
 		GROUP BY "s"."uid"
 	)
-	SELECT "s"."id", "s"."time", "s"."uid"
+	SELECT "s"."id", "s"."time", "s"."uid", "s"."target_id"
 	FROM "w"
 	JOIN "monitoring"."series" "s"
 	ON "s"."time" = "wtime" AND "s"."uid" = "wuid";

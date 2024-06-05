@@ -17,7 +17,7 @@ $model->setOrder('name');
 $action = $model->getUserAction('delete');
 $action->preview = static function (\Atk4\Data\Model $entity) {
 		$entity->assertIsEntity();
-				
+
 		return '<span class="ui large red text">'
 			. 'You are about to delete:<br><br>'
 			. $entity->countTargets() . ' targets<br>'
@@ -25,7 +25,7 @@ $action->preview = static function (\Atk4\Data\Model $entity) {
 			. $entity->countLogs() . ' log rows'
 			. '</span>';
 	};
-		
+
 if (! $app->auth->user->isLoaded()) {
 	$model->getUserAction('add')->enabled = false;
 	$model->getUserAction('edit')->enabled = false;

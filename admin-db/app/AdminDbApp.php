@@ -28,7 +28,7 @@ class AdminDbApp extends \Atk4\Ui\App {
         $this->uiPersistence = new UiPersistence();
 
         $this->initLayout([\Atk4\Ui\Layout\Maestro::class]);
-        
+
         // Authentication
 
 		$this->auth = new \Atk4\Login\Auth($this, [
@@ -36,7 +36,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 			'pageExit' => $tab_uri,
 			'fieldLogin' => 'login'
 		]);
-		
+
 		try {
 			$this->auth->setModel(new LoginUser($this->db));
 		} catch (Exception $e) {
@@ -44,21 +44,21 @@ class AdminDbApp extends \Atk4\Ui\App {
 			$this->redirect($tab_uri);
 			exit;
 		}
-		
+
 		// Keep session active
-		
+
 		if ($query_string == 'touch') {
 			session_start();
 			session_commit();
 			$this->terminateHtml('true');
 		}
-		
+
 		TimerView::addTo($this);
-		
+
 		$this->initAceEditor();
-		
+
 		// Header menu buttons
-		
+
 		$userCount = $this->auth->user->getModel()->executeCountQuery();
 
 		$item = $this->layout->menu->addItem()->addClass('aligned right');
@@ -75,6 +75,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 				'icon' => 'sign in'
 				, 'class.circular' => true
 				, 'class.orange' => true
+				, 'content' => 'Login'
 			])->on('click',
 				\Atk4\Ui\Modal::addTo($this)->set(function (\Atk4\Ui\View $p) {
 					LoginForm::addTo($p, ['auth' => $this->auth]);
@@ -153,7 +154,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 						'Site'
 						, 'icon'=>'code'
 					], [$app_uri . 'tab/admin-site'], $menu);
-					
+
 					if (file_exists($app_dir . '../composer.phar')) {
 						$this->layout->addMenuItem([
 							'Database'
@@ -174,10 +175,10 @@ class AdminDbApp extends \Atk4\Ui\App {
 
 		}
     }
-    
+
     protected function initAceEditor() {
 		global $app_uri;
-		
+
 		$this->requireJs($app_uri . 'ui/ace-editor/ace.js');
 		$this->addStyle('.ace_editor { border: 1px solid lightgray; margin: auto; width: 100%;  height: 100%; font-weight: bold;}');
 	}

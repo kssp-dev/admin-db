@@ -18,12 +18,12 @@ $model->getUserAction('delete')->confirmation = true;
 $model->getUserAction('delete')->enabled = static function (\Atk4\Data\Model $entity) {
 		return $entity->countTargets() === 0;
 	};
-		
+
 if (! $app->auth->user->isLoaded()) {
 	$model->getUserAction('add')->enabled = false;
 	$model->getUserAction('edit')->enabled = false;
 	$model->getUserAction('delete')->enabled = false;
-}	
+}
 
 $crud = \Atk4\MasterCrud\MasterCrud::addTo($app);
 

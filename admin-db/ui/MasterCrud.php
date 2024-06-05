@@ -104,9 +104,9 @@ class MasterCrud extends View
     public function setModel(Model $model, array $defs = null): void
     {
 		global $title;
-		
+
         $this->rootModel = $model;
-		
+
         $this->crumb->addCrumb(empty($title) ? $this->getCaption($model) : $title, $this->url());
 
         // extract path
@@ -268,7 +268,7 @@ class MasterCrud extends View
 		if ($defs['quickSearch']) {
 			$crud->addQuickSearch($defs['quickSearch'], true);
 		}
-		
+
         if ($ma = $defs['menuActions'] ?? null) {
             is_array($ma) || $ma = [$ma];
 
@@ -335,11 +335,11 @@ class MasterCrud extends View
 				$confirmation = '';
 				$modal = null;
 				$isDisabled = false;
-				
+
                 if (is_numeric($key)) {
                     $key = $action;
                 }
-                
+
                 if (is_array($action)) {
 					$seed = $action;
 					$action = null;
@@ -367,7 +367,7 @@ class MasterCrud extends View
 						unset($seed['disabled']);
 					}
                 }
-                
+
                 $button = null;
 
                 if (is_string($modal)) {
@@ -411,7 +411,7 @@ class MasterCrud extends View
                     unset($seed[0]);
                     $button->setDefaults($seed);
                 }
-                
+
                 if ($isDisabled && $button) {
 					$button->addClass('disabled');
 				}

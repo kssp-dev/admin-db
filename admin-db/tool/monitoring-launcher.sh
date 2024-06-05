@@ -78,7 +78,7 @@ sql_cmd="$sql_client -h $ADMIN_DB_HOST -p $ADMIN_DB_PORT -d $ADMIN_DB_NAME -U $A
 func_kill_tree () {
 
 	echo === Kill process tree ===
-	
+
 	echo $pid - root PID
 
 	local pids=`pstree -l -p $pid | grep "([[:digit:]]*)" -o | tr -d '()'`
@@ -91,7 +91,7 @@ func_kill_tree () {
 	else
 		echo --- Nothing to kill ---
 	fi
-	
+
 } # func_kill_tree
 
 
@@ -104,13 +104,13 @@ func_kill_tree () {
 func_start_duration () {
 
 	echo === Start duration ===
-	
+
 	start_uptime="$(cat /proc/uptime)"
 	start_uptime="${start_uptime%% *}"
 	start_uptime="${start_uptime//./}0"
-	
+
 	echo $start_uptime - start_uptime
-	
+
 } # func_start_duration
 
 
@@ -127,11 +127,11 @@ func_start_duration () {
 func_update_duration () {
 
 	echo === Update duration ===
-	
+
 	echo $1 - table name
 	echo $2 - record id
 	echo $start_uptime - start uptime
-	
+
 	echo --- Get last duration ---
 
 	local sql="SELECT duration FROM $1 WHERE id = $2"
@@ -148,21 +148,21 @@ func_update_duration () {
 	local duration=0
 	let "duration = ($uptime_now - $start_uptime)"
 	echo $duration ms
-	
+
 	if [ $sql -gt $duration ]
 	then
 		let "duration = $sql - (($sql - $duration) / 20)"
 		echo $duration ms
 	fi
-	
+
 	echo --- Update duration ---
-	
+
 	sql="UPDATE $1 SET duration = $duration WHERE id = $2"
 	echo $sql
 	sql=$($sql_cmd "$sql")
 	code=$?
 	echo $sql
-	
+
 } # func_update_duration
 
 
@@ -247,7 +247,7 @@ func_insert_series () {
 			let "repetition = ${sql##* | } + 1"
 		fi
 	fi
-	
+
 	echo $repetition
 
 	echo --- Insert series row ---
@@ -283,7 +283,7 @@ func_insert_series () {
 func_get_type () {
 
 	echo === Get type ===
-	
+
 	type_id=""
 	type_name=""
 	type_description=""
@@ -309,7 +309,7 @@ func_get_type () {
 			echo !!! $db_table_types insert error $code !!!
 			return
 		fi
-		
+
 		echo --- Get type again ---
 
 		sql="SELECT id, name, description FROM $db_table_types WHERE uid = '$type_uid'"
@@ -336,7 +336,7 @@ func_get_type () {
 	echo +$type_uid+ type_uid
 	echo +$type_name+ type name
 	echo +$type_description+ type description, optional
-	
+
 } # func_get_type
 
 
@@ -356,9 +356,9 @@ func_get_type () {
 func_parse_metric () {
 
 	echo === Parse metric string ===
-	
+
 	echo $metric
-	
+
 	code=0
 
 	local value=${metric%%\#*}
@@ -390,11 +390,11 @@ func_parse_metric () {
 	if [ -n "$value" ] && [ -n "$type_uid" ]
 	then
 		local alert_type_name="UNKNOWN MONITORING TYPE"
-	
+
 		func_get_type
 		func_insert_series
 	fi
-	
+
 } # func_parse_metric
 
 
@@ -410,9 +410,9 @@ func_parse_metric () {
 func_script_run_command () {
 
 	echo === Script command ===
-	
+
 	echo $script_path
-	
+
 	local line=""
 	code=0
 	cmd=""
@@ -446,7 +446,7 @@ func_script_run_command () {
 		cat "$script_path"
 		code=205
 	fi
-	
+
 } # func_script_run_command
 
 
@@ -464,7 +464,7 @@ func_script_run_command () {
 func_run_command () {
 
 	echo === Run command ===
-	
+
 	if [ -n "$sudo_user" ] && [ "$(whoami)" == "$sudo_user" ]
 	then
 		sudo_user=""
@@ -476,7 +476,7 @@ func_run_command () {
 	fi
 
 	ls -l "$temp_dir" | grep ":"
-	
+
 	local cmd=""
 	func_script_run_command
 	if [ $code != 0 ]
@@ -503,7 +503,7 @@ func_run_command () {
 		eval $cmd
 	fi
 	code=$?
-	
+
 } # func_run_command
 
 
@@ -521,7 +521,7 @@ func_run_command () {
 func_run_target () {
 
 	echo === Run target ===
-	
+
 	echo $script_id - script ID
 	echo $target_id - target ID
 
@@ -594,7 +594,7 @@ func_run_target () {
 	local sudo_user="$MONITORING_USER"
 	func_run_command "$target" "$data_path"
 	local script_code=$code
-	
+
 	echo --- Write log ---
 
 	sql="INSERT INTO $db_table_log (target_id, code, output) VALUES ($target_id, $script_code, '$(sed s/\'/\'\'/g "$out_path")')"
@@ -609,7 +609,7 @@ func_run_target () {
 	fi
 
 	echo --- Script exit code $script_code ---
-	
+
 	local metrics=""
 
 	if [ $script_code != 0 ]
@@ -618,7 +618,7 @@ func_run_target () {
 		local alert_type_name="SCRIPT ERROR CODE"
 
 		func_get_type
-		
+
 		metrics=( "$script_code#$type_uid#" )
 	else
 		echo --- Load metrics ---
@@ -631,13 +631,13 @@ func_run_target () {
 	if [ ${#metrics[*]} != 0 ]
 	then
 		local metric=""
-		
+
 		for metric in "${metrics[@]}"
 		do
 			func_parse_metric
 		done
 	fi
-	
+
 	func_update_duration "$db_table_targets" "$target_id"
 
 } # func_run_target
@@ -655,7 +655,7 @@ func_run_target () {
 func_run_targets () {
 
 	echo === Run target list ===
-	
+
 	echo $script_id - script ID
 	echo $target_ids - target IDs
 
@@ -717,14 +717,14 @@ func_run_targets () {
 ###
 
 func_run_targets_duration () {
-	
+
 	local start_uptime=""
 	func_start_duration
 
 	func_run_targets
-	
+
 	func_update_duration "$db_table_scripts" "$script_id"
-	
+
 } # func_run_targets_duration
 
 
@@ -742,7 +742,7 @@ func_run_targets_duration () {
 func_run_script () {
 
 	echo === Run script ===
-	
+
 	echo $instance_id - instance ID
 	echo $script_id - script ID
 
@@ -757,7 +757,7 @@ func_run_script () {
 		echo !!! $db_table_targets select error $code !!!
 		return
 	fi
-	
+
 	sql="${sql#"${sql%%[![:space:]]*}"}"
 	sql="${sql// |/}"
 
@@ -765,7 +765,7 @@ func_run_script () {
 
 	local target_ids=""
 	local id=""
-	
+
 	local period=0
 
 	for period in $sql
@@ -784,7 +784,7 @@ func_run_script () {
 			id=""
 		fi
 	done
-	
+
 	pid=""
 
 	if [ -n "$target_ids" ]
@@ -792,7 +792,7 @@ func_run_script () {
 		target_ids="${target_ids#"${target_ids%%[![:space:]]*}"}"
 
 		echo --- Target list ---
-		
+
 		echo $target_ids
 
 		. "$0" "script_id=$script_id${param_delimeter}target_ids=${target_ids// /${list_delimeter}}${param_delimeter}$1${param_delimeter}call_function=func_run_targets_duration" &
@@ -800,7 +800,7 @@ func_run_script () {
 
 		echo --- Started script $script_id PID $pid ---
 	fi
-	
+
 } # func_run_script
 
 
@@ -816,7 +816,7 @@ func_run_script () {
 func_timeout_process () {
 
 	echo === Run timeout process ===
-	
+
 	echo $script_timeout - script_timeout
 	sleep $script_timeout
 
@@ -832,14 +832,14 @@ func_timeout_process () {
 	local target_name=""
 	local target_short_name="*"
 	local value=1
-	
+
 	local timeout_pair=""
 	local pid=""
 	local script_id=0
 	local sql=""
-	
+
 	code=0
-	
+
 	echo --- Kill scripts ---
 
 	for timeout_pair in ${timeout_pids//${list_delimeter}/ }
@@ -890,11 +890,11 @@ func_timeout_process () {
 func_run_scripts () {
 
 	echo === Run scripts ===
-	
+
 	echo $instance_id - instance_id
 	echo $run_count - run_count
 	echo $script_timeout - script_timeout
-	
+
 	echo --- Get script ids ---
 
 	local sql="SELECT s.id FROM $db_table_scripts s INNER JOIN $db_table_targets t ON s.id = t.script_id WHERE t.instance_id = $instance_id AND t.enabled AND s.enabled GROUP BY s.id"
@@ -906,7 +906,7 @@ func_run_scripts () {
 		echo !!! $db_table_scripts select error $code !!!
 		return
 	fi
-	
+
 	sql="${sql#"${sql%%[![:space:]]*}"}"
 	echo $sql
 
@@ -918,14 +918,14 @@ func_run_scripts () {
 	for script_id in $sql
 	do
 		func_run_script
-		
+
 		if [ -n "$pid" ]
 		then
 			pids="$pids $pid"
 			timeout_pids="$timeout_pids $pid-$script_id"
 		fi
 	done
-	
+
 	timeout_pids="${timeout_pids#"${timeout_pids%%[![:space:]]*}"}"
 
 	if [ -n "$pids" ]
@@ -936,7 +936,7 @@ func_run_scripts () {
 		wait $pids
 
 		echo --- Scripts ended - kill timeout ---
-		
+
 		func_kill_tree
 	fi
 
@@ -979,7 +979,7 @@ func_run_scripts_clean () {
 	if [ $code != 0 ]; then
 		echo !!! $db_table_series delete error $code !!!
 	fi
-	
+
 } # func_run_scripts_clean
 
 
@@ -999,13 +999,13 @@ func_notify () {
 	then
 		mkdir -p "$notify_dir"
 	fi
-	
+
 	code=0
 
 	if [ -d "$notify_dir" ]
 	then
 		echo --- Notify loop ---
-		
+
 		local sql=""
 		local id=""
 		local value=""
@@ -1072,7 +1072,7 @@ func_notify () {
 			then
 				let "repetition = ($repetition % $notification_period)"
 			fi
-			
+
 			echo +$repetition+ repetition
 			echo +$notification_delay+ notification delay
 
@@ -1106,7 +1106,7 @@ func_notify () {
 			echo +$notification_description+ notification description
 
 			local script_path=""
-			
+
 			find "$notify_dir/" -maxdepth 1 -type f | sort |
 			while IFS= read -r script_path
 			do
@@ -1122,7 +1122,7 @@ func_notify () {
 		echo !!! No access to notification directory !!!
 		code=202
 	fi
-	
+
 } # func_notify
 
 
@@ -1141,7 +1141,7 @@ func_instance () {
 		MONITORING_INSTANCE=$(hostname)
 	fi
 	echo $MONITORING_INSTANCE
-	
+
 	code=0
 
 	echo --- Double run lock ---
@@ -1151,14 +1151,11 @@ func_instance () {
 	echo $pid_file
 	if [ -r "$pid_file" ] && ps -p $(cat "$pid_file") > /dev/null
 	then
-		echo !!! The script is already running !!!
+		echo !!! The script is already running - PID $(cat "$pid_file") !!!
 		code=206
 		return
 	fi
 	echo $$ | tee "$pid_file"
-	
-	local start_uptime=""
-	func_start_duration
 
 	echo --- Get instance id of $MONITORING_INSTANCE ---
 
@@ -1167,7 +1164,9 @@ func_instance () {
 	sql=$($sql_cmd "$sql")
 	code=$?
 	sql="${sql#"${sql%%[![:space:]]*}"}"
-	if [ -n "$sql" ]; then
+	if [ -z "$sql" ]; then
+		echo --- Instance not found ---
+	else
 		local instance_id="${sql%% *}"
 		sql="${sql#* |}"
 		local run_count="${sql%% |*}"
@@ -1179,6 +1178,9 @@ func_instance () {
 		echo +$run_count+ run_count
 		echo +$script_timeout+ script_timeout
 
+		local start_uptime=""
+		func_start_duration
+
 		let "run_count = ($run_count + 1) % 3628800"
 
 		echo --- Update run count ---
@@ -1188,7 +1190,7 @@ func_instance () {
 		sql=$($sql_cmd "$sql")
 		code=$?
 		if [ $code == 0 ]; then
-		
+
 			func_run_scripts_clean
 			func_notify
 
@@ -1199,13 +1201,13 @@ func_instance () {
 			sql=$($sql_cmd "$sql")
 			code=$?
 			echo $sql
-			
+
 		else
 			echo !!! $db_table_instances update error $code !!!
 		fi
+
+		func_update_duration "$db_table_instances" "$instance_id"
 	fi
-	
-	func_update_duration "$db_table_instances" "$instance_id"
 
 	echo --- Remove PID file ---
 
