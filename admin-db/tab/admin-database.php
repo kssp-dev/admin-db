@@ -33,31 +33,31 @@ if (file_exists($app_dir . '../composer.phar')) {
 				global $app, $app_uri, $app_dir;
 				$code = 0;
 				$output = [];
-				
+
 				try {
 					$drop = file_get_contents($app_dir . 'tool/drop.sql');
 					$create = file_get_contents($app_dir . 'tool/create.sql');
-					
+
 					if ($drop && $create) {
 						$app->db->getConnection()->getConnection()->exec($drop);
 						$app->db->getConnection()->getConnection()->exec($create);
 					} else {
 						throw new Exception('SQL script reading error');
 					}
-					
+
 					array_push($output, 'Database is empty now');
 				} catch (Exception $e) {
 					array_push($output, $e->getMessage());
 					$code = -1;
 				}
-				
+
 				$p->addMessage($code == 0
 						? 'Database recreated succesfully'
 						: 'Error occured - database is probably ruined'
 					, $output
 					, $code == 0 ? 'success' : 'error'
 				);
-				
+
 				$p->addReloadButton();
 			}
 		)
@@ -85,29 +85,29 @@ if (file_exists($app_dir . '../composer.phar')) {
 			global $app, $app_dir;
 			$code = 0;
 			$output = [];
-			
+
 			try {
 				$script = file_get_contents($app_dir . 'tool/create.sql');
-				
+
 				if ($script) {
 					$app->db->getConnection()->getConnection()->exec($script);
 				} else {
 					throw new Exception('SQL script reading error');
 				}
-				
+
 				array_push($output, 'Database is up to date now');
 			} catch (Exception $e) {
 				array_push($output, $e->getMessage());
 				$code = -1;
 			}
-			
+
 			$p->addMessage($code == 0
 					? 'Database updated succesfully'
 					: 'Error occured - database is probably ruined'
 				, $output
 				, $code == 0 ? 'success' : 'error'
 			);
-			
+
 			$p->addReloadButton();
 		}
 	)
