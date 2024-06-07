@@ -120,7 +120,7 @@ class AdminDbApp extends \Atk4\Ui\App {
 				], [$app_uri . 'tab/monitoring-scripts'], $menu);
 				$this->layout->addMenuItem([
 					'Types'
-					, 'icon'=>'microscope'
+					, 'icon'=>'drafting compass'
 				], [$app_uri . 'tab/monitoring-types'], $menu);
 				$this->layout->addMenuItem([
 					'Instances'

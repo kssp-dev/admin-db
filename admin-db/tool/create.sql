@@ -169,8 +169,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS "targets_name_script_id_key" ON "monitoring"."
 --CREATE UNIQUE INDEX IF NOT EXISTS "targets_target_script_id_key" ON "monitoring"."targets" ("target", "script_id");
 COMMENT ON TABLE "monitoring"."targets" IS 'Data sources scripts fetch information from';
 
-ALTER TABLE IF EXISTS "monitoring"."targets" DROP CONSTRAINT IF EXISTS "targets_target_script_id_key";
-ALTER TABLE IF EXISTS "monitoring"."targets" ALTER COLUMN "target" DROP NOT NULL;
+--ALTER TABLE IF EXISTS "monitoring"."targets" DROP CONSTRAINT IF EXISTS "targets_target_script_id_key";
+--ALTER TABLE IF EXISTS "monitoring"."targets" ALTER COLUMN "target" DROP NOT NULL;
 --ALTER TABLE IF EXISTS "monitoring"."targets" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
 
 CREATE TABLE IF NOT EXISTS "monitoring"."log" (

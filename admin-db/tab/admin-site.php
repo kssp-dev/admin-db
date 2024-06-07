@@ -47,7 +47,7 @@ foreach (scandirtree($app_dir) as $file) {
 	}
 }
 
-\Atk4\Ui\Header::addTo($app, ['Release time ' . date($app->uiPersistence->datetimeFormat, $fileTime)]);
+\Atk4\Ui\Header::addTo($app, ['Current release time ' . date($app->uiPersistence->datetimeFormat, $fileTime)]);
 
 
 \Atk4\Ui\Button::addTo($app, [

@@ -43,7 +43,7 @@ $crudOptions = [
 			, 'ipp' => 14
 		]
 	]
-	, 'quickSearch' => ['id', 'name', 'uid', 'updated', 'login']
+	, 'quickSearch' => ['id', 'name', 'uid', 'updated', 'login', 'script']
 	, 'menuActions' => []
 	, 'columnActions' => [
 		'Clone Script' => [

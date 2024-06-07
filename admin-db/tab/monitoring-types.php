@@ -43,7 +43,18 @@ $crudOptions = [
 	]
 	, 'quickSearch' => ['name', 'uid', 'description']
 	, 'menuActions' => []
-	, 'columnActions' => []
+	, 'columnActions' => [
+		'Remove Series' => [
+			'icon' => 'trash',
+			'caption' => 'Series',
+			'ui' => 'basic orange button',
+			'confirmation' => 'Are you sure to delete all series of the type?',
+			'disabled' => ! $app->auth->user->isLoaded(),
+			'action' => function (\Atk4\Data\Model $entity) {
+				return new \Atk4\Ui\Js\JsToast($entity->deleteSeries());
+			}
+		]
+	]
 ];
 
 $crud->setModel($model, $crudOptions);
