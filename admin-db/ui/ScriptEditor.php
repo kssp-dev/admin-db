@@ -22,7 +22,7 @@ class ScriptEditor extends \Atk4\Ui\Js\JsModal {
 		$control = $form->getControl($scriptField);
 		$control->height = 79;
 		$control->fontSize = 13;
-		$control->caption = $entity->get('name');
+		$control->caption = $entity->get('name') . ' [' . $entity->get('uid') . ']';
 
 		$form->onSubmit(function (\Atk4\Ui\Form $form) use ($table, $scriptField, $bakupScript) {
 			if (0 == strcmp($bakupScript, $form->model->get($scriptField))) {
