@@ -1,6 +1,6 @@
 <?php
 
-class ScriptEditor extends \Atk4\Ui\Js\JsModal {
+class ScriptEditor extends JsModal {
 	public $scriptField = 'script';
 
     function __construct(\Atk4\Data\Model $entity, \Atk4\Ui\View $virtualPage, \Atk4\Ui\View $table) {
@@ -44,17 +44,8 @@ class ScriptEditor extends \Atk4\Ui\Js\JsModal {
 			}
 		});
 
-		\Atk4\Ui\Button::addTo($form, [
-			'Close'
-			, 'icon' => 'times'
-		])->addClass('ui blue basic button')
-		->on('click', $form->getApp()->jsRedirect($tab_uri, false));
-
-		\Atk4\Ui\Button::addTo($form, [
-			'Targets'
-			, 'icon' => 'arrow right'
-		])->addClass('ui right labeled icon right floated blue basic button')
-		->on('click', $form->getApp()->jsRedirect('monitoring-targets', true));
+		$this->addCloseButton($form);
+		$this->addRedirectButton($form, 'monitoring-targets', 'Targets');
 
         parent::__construct(
 			'Script Editor'

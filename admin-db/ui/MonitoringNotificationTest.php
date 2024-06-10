@@ -48,11 +48,10 @@ class MonitoringNotificationTest extends ModalLoader {
 
 				$p->addHeader($alertModel->get('name'), 3);
 
-
 				$p->addTextarea($output, 25)
 					->setInputAttr('style', 'font-family: monospace;');
 
-				$p->addCloseButton($app);
+				$this->addCloseButton($p);
 
 				$table->jsReload();
 			}

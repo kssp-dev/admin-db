@@ -389,7 +389,7 @@ func_parse_metric () {
 
 	if [ -n "$value" ] && [ -n "$type_uid" ]
 	then
-		local alert_type_name="UNKNOWN MONITORING TYPE"
+		local alert_type_name="$type_uid"
 
 		func_get_type
 		func_insert_series
@@ -407,7 +407,7 @@ func_parse_metric () {
 # @return $code - error code
 ###
 
-func_script_run_command () {
+func_get_script_command () {
 
 	echo === Script command ===
 
@@ -443,42 +443,33 @@ func_script_run_command () {
 		cmd='perl "'$script_path'"'
 	else
 		echo !!! Unknown script format $script_id !!!
-		cat "$script_path"
 		code=205
 	fi
 
-} # func_script_run_command
+} # func_get_script_command
 
 
 ###
-# Executes command
+# Executes command by a user
 #
 # @param $sudo_user - user to run the command of
-# @param $temp_dir - script temp files directory
 # @param $script_path - script file path
 # @param $out_path - file to save script output in
 #
 # @return $code - error code
 ###
 
-func_run_command () {
+func_run_as () {
 
-	echo === Run command ===
+	echo === Run as ===
 
 	if [ -n "$sudo_user" ] && [ "$(whoami)" == "$sudo_user" ]
 	then
 		sudo_user=""
 	fi
 
-	if [ -n "$sudo_user" ]
-	then
-		chmod -R 777 "$temp_dir/"
-	fi
-
-	ls -l "$temp_dir" | grep ":"
-
 	local cmd=""
-	func_script_run_command
+	func_get_script_command
 	if [ $code != 0 ]
 	then
 		return
@@ -498,11 +489,34 @@ func_run_command () {
 	echo $cmd
 	if [ -n "$out_path" ]
 	then
-		eval $cmd 2>&1 > "$out_path"
+		eval $cmd 2> "$out_path" > "$out_path"
 	else
-		eval $cmd
+		eval $cmd 2>&1
 	fi
 	code=$?
+
+} # func_run_as
+
+
+###
+# Executes command
+#
+# @param $sudo_user - user to run the command of
+# @param $temp_dir - script temp files directory
+# @param $script_path - script file path
+# @param $out_path - file to save script output in
+#
+# @return $code - error code
+###
+
+func_run_command () {
+
+	echo === Run command ===
+
+	chmod -R 777 "$temp_dir/"
+	ls -l "$temp_dir" | grep ":"
+
+	func_run_as "$1" "$2"
 
 } # func_run_command
 
@@ -1106,14 +1120,13 @@ func_notify () {
 			echo +$notification_description+ notification description
 
 			local script_path=""
+			local sudo_user=""
+			local out_path=""
 
 			find "$notify_dir/" -maxdepth 1 -type f | sort |
 			while IFS= read -r script_path
 			do
-				func_script_run_command
-				if [ $code == 0 ]; then
-					eval $cmd
-				fi
+				func_run_as
 			done
 
 			sleep 1

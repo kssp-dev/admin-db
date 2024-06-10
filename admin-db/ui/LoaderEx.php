@@ -13,7 +13,7 @@ class LoaderEx extends Atk4\Ui\Loader {
 
 	function addTextarea($output, $rows = 14) {
 		$text = is_array($output) ? implode("\n", $output) : strval($output);
-		$rows = min($rows, substr_count($text, "\n") + 1);
+		$rows = min($rows, substr_count($text, "\n") + 2);
 
 		$segment = Atk4\Ui\View::addTo($this, ['ui' => 'form']);
 
@@ -62,42 +62,6 @@ class LoaderEx extends Atk4\Ui\Loader {
 			$msg->text->addParagraph(strval($output));
 		}
     }
-
-	function addRedirectButton($uri, $newTab = false) {
-		global $app;
-
-		$button = Atk4\Ui\Button::addTo($this, [
-			empty($uri[0]) ? 'Redirect' : $uri[0]
-			,'icon' => empty($uri['icon']) ? 'arrow right' : $uri['icon']
-		])->addClass('blue button');
-
-		$button->on('click', $app->jsRedirect(
-			empty($uri['uri']) ? strval($uri) : $uri['uri']
-			, $newTab
-		));
-
-		return $button;
-	}
-
-	function addReloadButton($uri = null) {
-		global $app_uri;
-
-		return $this->addRedirectButton([
-			'Reload site'
-			, 'icon' => 'sync'
-			, 'uri' => isset($uri) ? $uri : $app_uri . '..'
-		]);
-	}
-
-	function addCloseButton() {
-		global  $tab_uri;
-
-		$this->addRedirectButton([
-			'Close'
-			, 'icon' => 'times'
-			, 'uri' => $tab_uri
-		]);
-	}
 
 }
 

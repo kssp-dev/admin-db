@@ -79,12 +79,8 @@ class MonitoringTargetTest extends ModalLoader {
 				$p->addTextarea($output)
 					->setInputAttr('style', 'font-family: monospace;');
 
-				$p->addCloseButton();
-
-				$p->addRedirectButton([
-					'Scripts'
-					, 'uri' => 'monitoring-scripts'], true)
-					->addClass('ui right labeled icon right floated blue basic button');
+				$this->addCloseButton($p);
+				$this->addRedirectButton($p, 'monitoring-scripts', 'Scripts');
 
 				$table->jsReload();
 			}
