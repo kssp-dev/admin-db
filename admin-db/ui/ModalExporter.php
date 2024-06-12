@@ -80,7 +80,7 @@ class ModalExporter extends ModalLoader {
 				
 				$p->addTextarea($output);
 				
-				$p->addCloseButton($app);
+				JsModal::addCloseButton($p);
 			}
 			, $virtualPage
 		);

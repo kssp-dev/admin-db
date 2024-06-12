@@ -91,7 +91,7 @@ foreach (scandirtree($app_dir) as $file) {
 				, $code == 0 ? 'success' : 'error'
 			);
 
-			$p->addReloadButton();
+			JsModal::addCloseButton($p);
 		}
 	)
 );

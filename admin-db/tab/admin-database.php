@@ -58,7 +58,7 @@ if (file_exists($app_dir . '../composer.phar')) {
 					, $code == 0 ? 'success' : 'error'
 				);
 
-				$p->addReloadButton();
+				JsModal::addCloseButton($p);
 			}
 		)
 	);

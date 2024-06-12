@@ -2,7 +2,7 @@
 
 class JsModal extends \Atk4\Ui\Js\JsModal {
 
-	function addCloseButton(\Atk4\Ui\View $view) {
+	public static function addCloseButton(\Atk4\Ui\View $view) {
 		global $tab_uri;
 		$button = \Atk4\Ui\Button::addTo($view, [
 			'Close'
@@ -12,7 +12,7 @@ class JsModal extends \Atk4\Ui\Js\JsModal {
 		return $button;
 	}
 
-	function addRedirectButton(\Atk4\Ui\View $view, $uri, $caption) {
+	public static function addRedirectButton(\Atk4\Ui\View $view, $uri, $caption) {
 		$button = \Atk4\Ui\Button::addTo($view, [
 			$caption
 			, 'icon' => 'arrow right'
