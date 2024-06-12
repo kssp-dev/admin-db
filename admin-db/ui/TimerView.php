@@ -34,7 +34,7 @@ class TimerView extends \Atk4\Ui\View {
 		global $tab_uri;
 
 		if ($this->interval == null) {
-			$this->interval = intval(ini_get('session.gc_maxlifetime')) * 200;	// 5 times per session timeout
+			$this->interval = intval(ini_get('session.gc_maxlifetime')) * 250;	// 4 times per session timeout
 		}
 
 		parent::init();
