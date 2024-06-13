@@ -19,6 +19,8 @@ class MonitoringLastMetric extends MonitoringSeriesView {
 			  'short_name' => ['neverSave' => true],
 			  'description' => ['type' => 'text', 'neverSave' => true]
         ]);
+		
+		$this->idField = 'uid';
     }
 }
 

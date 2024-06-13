@@ -198,14 +198,14 @@ func_insert_series () {
 
 	if [ -n "$object" ]
 	then
-		object_uid="${uid_delimeter}${object//${uid_delimeter}/-}"
+		object_uid="${object//${uid_delimeter}/-}"
 		object_uid="${object_uid//[[:space:]]/-}"
 
 		series_name="$series_name [$object]"
 		series_short_name="$series_short_name - $object"
 	fi
 
-	local series_uid="$target_uid${uid_delimeter}$type_uid$object_uid"
+	local series_uid="$target_uid${uid_delimeter}$type_uid${uid_delimeter}$object_uid"
 	series_uid="${series_uid,,}"
 	series_uid="'${series_uid//\'/\'\'}'"
 
