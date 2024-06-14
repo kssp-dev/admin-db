@@ -53,15 +53,6 @@ $crudOptions = [
 				new ModalCloner($entity, $p, $crud, ['name', 'uid']);
 			}
 		]
-		, 'Script Editor' => [
-			'icon' => 'file medical alternate',
-			'caption' => 'Script',
-			'ui' => 'basic blue button',
-			'disabled' => ! $app->auth->user->isLoaded(),
-			'modal' => function ($p, $entity, $crud) {
-				new ScriptEditor($entity, $p, $crud);
-			}
-		]
 		, 'Remove Series' => [
 			'icon' => 'trash',
 			'caption' => 'Series',
@@ -70,6 +61,15 @@ $crudOptions = [
 			'disabled' => ! $app->auth->user->isLoaded(),
 			'action' => function (\Atk4\Data\Model $entity) {
 				return new \Atk4\Ui\Js\JsToast($entity->deleteSeries());
+			}
+		]
+		, 'Script Editor' => [
+			'icon' => 'file medical alternate',
+			'caption' => 'Script',
+			'ui' => 'basic blue button',
+			'disabled' => ! $app->auth->user->isLoaded(),
+			'modal' => function ($p, $entity, $crud) {
+				new ScriptEditor($entity, $p, $crud);
 			}
 		]
 	]

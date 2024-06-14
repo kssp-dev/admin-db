@@ -52,14 +52,6 @@ $crudOptions = [
 				new ModalCloner($entity, $p, $crud, ['name', 'uid', 'target', 'script_id', 'instance_id', 'period']);
 			}
 		]
-		, 'Monitoring Test' => [
-			'icon' => 'running',
-			'caption' => 'Test',
-			'ui' => 'basic green button',
-			'modal' => function ($p, $entity, $crud) {
-				new MonitoringTargetTest($entity, $p, $crud);
-			}
-		]
 		, 'Remove Series' => [
 			'icon' => 'trash',
 			'caption' => 'Series',
@@ -68,6 +60,14 @@ $crudOptions = [
 			'disabled' => ! $app->auth->user->isLoaded(),
 			'action' => function (\Atk4\Data\Model $entity) {
 				return new \Atk4\Ui\Js\JsToast($entity->deleteSeries());
+			}
+		]
+		, 'Monitoring Test' => [
+			'icon' => 'running',
+			'caption' => 'Test',
+			'ui' => 'basic green button',
+			'modal' => function ($p, $entity, $crud) {
+				new MonitoringTargetTest($entity, $p, $crud);
 			}
 		]
 	]
