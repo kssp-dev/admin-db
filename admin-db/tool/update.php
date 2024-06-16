@@ -51,9 +51,9 @@ try {
 	if (file_exists($site_dir . '/composer.phar')) {
 		throw new Exception('Development site can not be updated');
 	}
-	
+
 	print('OK<br>');
-	
+
 	print('Connecting to update server... ');
 	$hurl = fopen($url, "r");
 
@@ -61,42 +61,42 @@ try {
 		throw new Exception('Can not open URL ' . $url);
 	}
 	print('OK<br>');
-	
+
 	print('Creating local file... ');
 	$hzip = fopen($zip, "w+");
-	
+
 	if (!$hzip) {
 		fclose($hurl);
 		throw new Exception('Can not create file ' . $zip);
 	}
 	print('OK<br>');
-	
-	print('Downloading update... ');	
+
+	print('Downloading update... ');
 	do {
 		$data = fread($hurl, 1024);
 		if ($data) {
 			$n = fwrite($hzip, $data);
 		}
-	} while ($data && $n);	
+	} while ($data && $n);
 	print('OK<br>');
-				
-	fclose($hzip);	
+
+	fclose($hzip);
 	fclose($hurl);
-	
+
 	print('Extracting files... ');
 	$za->open($zip);
-	
+
 	if (file_exists($tmp)) {
 		unlink($tmp);
 	}
 	mkdir($tmp);
-		
+
 	$za->extract($tmp);
 	print('OK<br>');
-	
+
 	print('Search for source directory... ');
 	$source_dir = null;
-	
+
 	foreach(scandir($tmp) as $file){
 		$path = realpath($tmp . DIRECTORY_SEPARATOR . $file);
 		if (is_dir($path) && $file != '.' && $file != '..'
@@ -106,17 +106,17 @@ try {
 				|| file_exists($path . '/index.htm')
 			)
 			&& is_dir($path . '/vendor')
-		) {	
+		) {
 			$source_dir = $path;
 			break;
 		}
 	}
-	
+
 	if (!$source_dir) {
 		throw new Exception('Site root not found in the update archive');
 	}
 	print('OK<br>');
-	
+
 	print('Cleanning up source directory... ');
 	foreach(scandir($source_dir) as $file){
 		$path = realpath($source_dir . DIRECTORY_SEPARATOR . $file);
@@ -127,18 +127,18 @@ try {
 		}
 	}
 	print('OK<br>');
-	
+
 	print('Removing old files... ');
 	$dir_list = scandir($site_dir);
-	
+
 	if (!$dir_list) {
 		throw new Exception('Scan dir error ' . $site_dir);
 	}
-	
+
 	if (file_exists($site_dir . '/composer.phar')) {
 		throw new Exception('Development site can not be updated');
 	}
-	
+
 	foreach($dir_list as $file){
 		$path = realpath($site_dir . DIRECTORY_SEPARATOR . $file);
 		if(!is_dir($path)){
@@ -152,24 +152,29 @@ try {
 		) {
 			$fs->remove($path);
 		}
-	}	
+	}
 	print('OK<br>');
-	
-	print('Copying new files... ');	
-	$fs->mirror($source_dir, $site_dir);			
+
+	print('Copying new files... ');
+	$fs->mirror($source_dir, $site_dir);
 	print('OK<br>');
-	
+
 } catch (Exception $e) {
 	print('FAILED<br>' . $e->getMessage() . '<br>');
 	$code = 3;
 }
 
 print('Cleanning... ');
-if (file_exists($zip)) {		
-	unlink($zip);
-}
-if (file_exists($tmp)) {
-	$fs->remove($tmp);
+if (file_exists($site_dir . '/composer.phar')) {
+	print('<br>' . $zip . '<br>');
+	print($tmp . '<br>');
+} else {
+	if (file_exists($zip)) {
+		unlink($zip);
+	}
+	if (file_exists($tmp)) {
+		$fs->remove($tmp);
+	}
 }
 print('OK<br>');
 

@@ -179,7 +179,7 @@ class AdminDbApp extends \Atk4\Ui\App {
     protected function initAceEditor() {
 		global $app_uri;
 
-		$this->requireJs($app_uri . 'ui/ace-editor/ace.js');
+		$this->requireJs($app_uri . '../ace-editor/ace.js');
 		$this->addStyle('.ace_editor { border: 1px solid lightgray; margin: auto; width: 100%;  height: 100%; font-weight: bold;}');
 	}
 }

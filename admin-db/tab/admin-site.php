@@ -86,7 +86,7 @@ foreach (scandirtree($app_dir) as $file) {
 
 			$p->addMessage($code == 0
 					? 'You are lucky - the site is up to date now'
-					: 'Error occured - the site is probably ruined'
+					: 'Error ' . $code . ' occured - the site is probably ruined'
 				, $output
 				, $code == 0 ? 'success' : 'error'
 			);
