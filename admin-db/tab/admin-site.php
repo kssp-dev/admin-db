@@ -12,36 +12,12 @@ if (! $features['admin']
 	exit;
 }
 
-
-function scandirtree($path = '', &$name = array() )
-{
-	$path = $path == '' ? dirname(__FILE__) : $path;
-	if (substr($path, -1) != DIRECTORY_SEPARATOR) {
-		$path = $path.DIRECTORY_SEPARATOR;
-	}
-	$lists = @scandir($path);
-
-	if(!empty($lists))
-	{
-		foreach($lists as $f)
-		{
-			if(is_dir($path.$f) && $f != ".." && $f != ".")
-			{
-				scandirtree($path.$f, $name);
-			}
-			else
-			{
-				$name[] = $path.$f;
-			}
-		}
-	}
-	return $name;
-}
+require_once __DIR__ . '/../tool/Filesystem.php';
 
 
 $fileTime = 0;
 
-foreach (scandirtree($app_dir) as $file) {
+foreach (Filesystem::scandirtree($app_dir, 0) as $file) {
 	if (is_file($file) && $fileTime < filemtime($file)) {
 		$fileTime = filemtime($file);
 	}
@@ -100,7 +76,7 @@ if (file_exists($app_dir . '../composer.phar')) {
 	\Atk4\Ui\Header::addTo($app, ['Application']);
 	\Atk4\Ui\View::addTo($app, ['ui' => 'segment', 'class.raised' => true, 'element' => 'pre'])
 		//->set(print_r($app->uiPersistence, true));
-		->set(print_r(scandirtree($app_dir), true));
+		->set(print_r(Filesystem::scandirtree($app_dir, 0), true));
 }
 /*
 \Atk4\Ui\Header::addTo($app, ['_SERVER']);

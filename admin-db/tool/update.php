@@ -35,9 +35,10 @@ if (!file_exists($site_dir . '/index.php')) {
 }
 
 require_once $site_dir . '/vendor/autoload.php';
+//require_once __DIR__ . '/Filesystem.php';
+require_once __DIR__ . '/pclzip.lib.php';
 
 $fs = new Symfony\Component\Filesystem\Filesystem();
-$za = new splitbrain\PHPArchive\Zip();
 
 $code = 0;
 
@@ -48,10 +49,6 @@ unlink($zip);
 $zip = $zip . '.zip';
 
 try {
-	if (file_exists($site_dir . '/composer.phar')) {
-		throw new Exception('Development site can not be updated');
-	}
-
 	print('OK<br>');
 
 	print('Connecting to update server... ');
@@ -84,7 +81,7 @@ try {
 	fclose($hurl);
 
 	print('Extracting files... ');
-	$za->open($zip);
+	$za = new PclZip($zip);
 
 	if (file_exists($tmp)) {
 		unlink($tmp);
@@ -157,6 +154,9 @@ try {
 
 	print('Copying new files... ');
 	$fs->mirror($source_dir, $site_dir);
+	//foreach (Filesystem::scandirtree($source_dir) as $file) {
+		//touch($site_dir . '/' . $file, filemtime($source_dir . '/' . $file));
+	//}
 	print('OK<br>');
 
 } catch (Exception $e) {
