@@ -34,20 +34,17 @@ new_line=$'\n'
 # parameters
 
 value="$1${param_delimeter}"
-length=0
-while [ "${#value}" != "$length" ]
+#echo 1: +$value+
+while [ -n "$value" ]
 do
-	length=${#value}
-	value="${value//${param_delimeter}${param_delimeter}/${param_delimeter}}"
-done
-#echo 1: $1
-while [ -n "${value%%${param_delimeter}*}" ]
-do
-	export ${value%%${param_delimeter}*}
+	if [ -n "${value%%${param_delimeter}*}" ]
+	then
+		#echo +${value%%${param_delimeter}*}+
+		export ${value%%${param_delimeter}*}
+	fi
 	value=${value#*${param_delimeter}}
 done
 unset value
-unset length
 
 # check configuration
 
@@ -81,13 +78,24 @@ func_kill_tree () {
 
 	echo $pid - root PID
 
-	local pids=`pstree -l -p $pid | grep "([[:digit:]]*)" -o | tr -d '()'`
+	local tree_pids=`pstree -l -p $pid | grep "([[:digit:]]*)" -o | tr -d '()'`
+	#echo $tree_pids
+	local kill_pids=""
+	local p=""
 
-	if [ -n "$pids" ]
+	for p in $tree_pids
+	do
+		if ps -p $p > /dev/null
+		then
+			kill_pids="$kill_pids $p"
+		fi
+	done
+	
+	if [ -n "$kill_pids" ]
 	then
-		echo $pids
-		kill -INT $pids
-		wait $pids 2> /dev/null
+		echo $kill_pids
+		kill -INT $kill_pids
+		wait $kill_pids 2> /dev/null
 	else
 		echo --- Nothing to kill ---
 	fi
@@ -403,7 +411,7 @@ func_parse_metric () {
 #
 # @param $script_path - script file is to run
 #
-# @return $cmd - command to run the script
+# @return $script_cmd - command to run the script
 # @return $code - error code
 ###
 
@@ -415,7 +423,7 @@ func_get_script_command () {
 
 	local line=""
 	code=0
-	cmd=""
+	script_cmd=""
 
 	IFS= read -r line < "$script_path"
 
@@ -425,22 +433,22 @@ func_get_script_command () {
 	then
 		echo --- Bash script ---
 
-		cmd='bash "'$script_path'"'
+		script_cmd='bash "'$script_path'"'
 	elif [[ "$line" =~ ^#!\/.+[[:space:]]+python.*$ ]]
 	then
 		echo --- Python script ---
 
-		cmd='python3 "'$script_path'"'
+		script_cmd='python3 "'$script_path'"'
 	elif [[ "$line" =~ ^\<\?php[[:space:]]*$ ]]
 	then
 		echo --- PHP script ---
 
-		cmd='php "'$script_path'"'
+		script_cmd='php "'$script_path'"'
 	elif [[ "$line" =~ ^#!\/.+\/perl[[:space:]]*$ ]]
 	then
 		echo --- Perl script ---
 
-		cmd='perl "'$script_path'"'
+		script_cmd='perl "'$script_path'"'
 	else
 		echo !!! Unknown script format $script_id !!!
 		code=205
@@ -455,7 +463,9 @@ func_get_script_command () {
 # @param $sudo_user - user to run the command of
 # @param $script_path - script file path
 # @param $out_path - file to save script output in
+# @param $script_cmd - command to run the script, optional
 #
+# @return $script_cmd - command to run the script
 # @return $code - error code
 ###
 
@@ -468,30 +478,32 @@ func_run_as () {
 		sudo_user=""
 	fi
 
-	local cmd=""
-	func_get_script_command
-	if [ $code != 0 ]
+	if [ -z "$script_cmd" ]
 	then
-		return
+		func_get_script_command
+		if [ $code != 0 ]
+		then
+			return
+		fi
 	fi
 
 	if [ -n "$sudo_user" ]
 	then
 		echo --- Exec by sudo user $sudo_user ---
 
-		cmd='sudo -E -u "'$sudo_user'" '$cmd' "'$1'" "'$2'"'
+		local run='sudo -E -u "'$sudo_user'" '$script_cmd' "'$1'" "'$2'"'
 	else
 		echo --- Exec by current user $(whoami) ---
 
-		cmd=$cmd' "'$1'" "'$2'"'
+		local run=$script_cmd' "'$1'" "'$2'"'
 	fi
 
-	echo $cmd
+	echo $run
 	if [ -n "$out_path" ]
 	then
-		eval $cmd 2> "$out_path" > "$out_path"
+		eval $run 2> "$out_path" > "$out_path"
 	else
-		eval $cmd 2>&1
+		eval $run 2>&1
 	fi
 	code=$?
 
@@ -505,7 +517,9 @@ func_run_as () {
 # @param $temp_dir - script temp files directory
 # @param $script_path - script file path
 # @param $out_path - file to save script output in
+# @param $script_cmd - command to run the script, optional
 #
+# @return $script_cmd - command to run the script
 # @return $code - error code
 ###
 
@@ -662,6 +676,7 @@ func_run_target () {
 #
 # @param $script_id - script_id
 # @param $target_ids - list of target_id
+# @param $temp_dir - script temp files directory, optional
 #
 # @return $code - error code
 ###
@@ -673,16 +688,19 @@ func_run_targets () {
 	echo $script_id - script ID
 	echo $target_ids - target IDs
 
-	echo --- Create temp directory ---
-
-	local temp_dir=$(mktemp -d)
-	if [ ! -d "$temp_dir" ]
+	if [ -z "$temp_dir" ] || [ ! -d "$temp_dir" ]
 	then
-		echo !!! Can not create temp directory !!!
-		code=203
-		return
+		echo --- Create script temp directory ---
+
+		local temp_dir=$(mktemp -d)
+		echo $temp_dir
+		if [ ! -d "$temp_dir" ]
+		then
+			echo !!! Can not create temp directory !!!
+			code=203
+			return
+		fi
 	fi
-	echo $temp_dir
 
 	echo --- Write script file ---
 
@@ -703,6 +721,7 @@ func_run_targets () {
 	if [ $code == 0 ]
 	then
 		local target_id=0
+		local script_cmd=""
 
 		for target_id in ${target_ids//${list_delimeter}/ }
 		do
@@ -710,9 +729,9 @@ func_run_targets () {
 		done
 	fi
 
-	if [ -d "$temp_dir" ]
+	if [ -e "$temp_dir" ]
 	then
-		echo --- Remove temp directory ---
+		echo --- Remove script temp directory ---
 
 		rm -r "$temp_dir"
 	fi
@@ -748,6 +767,7 @@ func_run_targets_duration () {
 # @param $instance_id - instance ID
 # @param $script_id - script_id
 # @param $run_count - instance run count
+# @param $temp_dir - instance temp files directory
 #
 # @return $pid - the process PID of the running script
 # @return $code - error code
@@ -803,14 +823,30 @@ func_run_script () {
 
 	if [ -n "$target_ids" ]
 	then
-		target_ids="${target_ids#"${target_ids%%[![:space:]]*}"}"
-
 		echo --- Target list ---
-
+		
+		target_ids="${target_ids#"${target_ids%%[![:space:]]*}"}"
 		echo $target_ids
 
-		. "$0" "script_id=$script_id${param_delimeter}target_ids=${target_ids// /${list_delimeter}}${param_delimeter}$1${param_delimeter}call_function=func_run_targets_duration" &
+		echo --- Create script temp directory ---
+
+		local temp_dir=$temp_dir/$script_id
+		if [ -e "$temp_dir" ]
+		then
+			rm -r "$temp_dir"
+		fi
+		mkdir -p "$temp_dir"
+		echo $temp_dir
+		if [ ! -d "$temp_dir" ]
+		then
+			echo !!! Can not create temp directory !!!
+			code=203
+			return
+		fi
+
+		. "$0" "$1${param_delimeter}temp_dir=$temp_dir${param_delimeter}script_id=$script_id${param_delimeter}target_ids=${target_ids// /${list_delimeter}}${param_delimeter}call_function=func_run_targets_duration" &
 		pid=$!
+		echo $pid > "$temp_dir/pid"
 
 		echo --- Started script $script_id PID $pid ---
 	fi
@@ -822,7 +858,7 @@ func_run_script () {
 # Run timeout process to kill scripts
 #
 # @param $script_timeout - scripts timeout in seconds
-# @param $timeout_pids - pid-script_id pair list
+# @param $temp_dir - instance temp files directory
 #
 # @return $code - error code
 ###
@@ -856,10 +892,13 @@ func_timeout_process () {
 
 	echo --- Kill scripts ---
 
-	for timeout_pair in ${timeout_pids//${list_delimeter}/ }
+	for script_id in $(ls -F -1 "$temp_dir" | sed -n "s/\///p")
 	do
-		pid="${timeout_pair%%-*}"
-		script_id="${timeout_pair##*-}"
+		echo --- script_id $script_id ---
+		
+		pid=$(cat "$temp_dir/$script_id/pid")
+		
+		echo --- pid $pid ---
 
 		if ps -p $pid > /dev/null
 		then
@@ -897,6 +936,7 @@ func_timeout_process () {
 # @param $instance_id - instance ID
 # @param $run_count - instance run count
 # @param $script_timeout - scripts timeout in seconds
+# @param $temp_dir - instance temp files directory
 #
 # @return $code - error code
 ###
@@ -936,18 +976,15 @@ func_run_scripts () {
 		if [ -n "$pid" ]
 		then
 			pids="$pids $pid"
-			timeout_pids="$timeout_pids $pid-$script_id"
 		fi
 	done
 
-	timeout_pids="${timeout_pids#"${timeout_pids%%[![:space:]]*}"}"
-
 	if [ -n "$pids" ]
 	then
-		. "$0" "script_timeout=$script_timeout${param_delimeter}timeout_pids=${timeout_pids// /${list_delimeter}}${param_delimeter}$1${param_delimeter}call_function=func_timeout_process" &
+		. "$0" "$1${param_delimeter}temp_dir=$temp_dir${param_delimeter}script_timeout=$script_timeout${param_delimeter}call_function=func_timeout_process" &
 		pid=$!
 
-		wait $pids
+		wait $pids 2> /dev/null
 
 		echo --- Scripts ended - kill timeout ---
 
@@ -1126,6 +1163,7 @@ func_notify () {
 			find "$notify_dir/" -maxdepth 1 -type f | sort |
 			while IFS= read -r script_path
 			do
+				local script_cmd=""
 				func_run_as
 			done
 
@@ -1159,16 +1197,30 @@ func_instance () {
 
 	echo --- Double run lock ---
 
-	local pid_file=$(basename "$0")
-	pid_file=/tmp/$pid_file.$MONITORING_INSTANCE.pid
-	echo $pid_file
-	if [ -r "$pid_file" ] && ps -p $(cat "$pid_file") > /dev/null
+	local temp_dir=/tmp/$(basename "$0").$MONITORING_INSTANCE
+	
+	if [ -r "$temp_dir/pid" ] && ps -p $(cat "$temp_dir/pid") > /dev/null
 	then
-		echo !!! The script is already running - PID $(cat "$pid_file") !!!
+		echo !!! The script is already running - PID $(cat "$temp_dir/pid") !!!
 		code=206
 		return
 	fi
-	echo $$ | tee "$pid_file"
+
+	echo --- Create instance temp directory ---
+
+	echo $temp_dir
+	if [ -e "$temp_dir" ]
+	then
+		rm -r "$temp_dir"
+	fi
+	mkdir -p "$temp_dir"
+	if [ ! -d "$temp_dir" ]
+	then
+		echo !!! Can not create temp directory !!!
+		code=203
+		return
+	fi
+	echo $$ | tee "$temp_dir/pid"
 
 	echo --- Get instance id of $MONITORING_INSTANCE ---
 
@@ -1222,9 +1274,12 @@ func_instance () {
 		func_update_duration "$db_table_instances" "$instance_id"
 	fi
 
-	echo --- Remove PID file ---
+	if [ -e "$temp_dir" ]
+	then
+		echo --- Remove instance temp directory ---
 
-	rm "$pid_file"
+		rm -r "$temp_dir"
+	fi
 
 } # func_instance
 
