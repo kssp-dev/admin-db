@@ -35,7 +35,7 @@ if (!file_exists($site_dir . '/index.php')) {
 }
 
 require_once $site_dir . '/vendor/autoload.php';
-//require_once __DIR__ . '/Filesystem.php';
+require_once __DIR__ . '/Filesystem.php';
 require_once __DIR__ . '/pclzip.lib.php';
 
 $fs = new Symfony\Component\Filesystem\Filesystem();
@@ -154,9 +154,9 @@ try {
 
 	print('Copying new files... ');
 	$fs->mirror($source_dir, $site_dir);
-	//foreach (Filesystem::scandirtree($source_dir) as $file) {
-		//touch($site_dir . '/' . $file, filemtime($source_dir . '/' . $file));
-	//}
+	foreach (Filesystem::scandirtree($source_dir) as $file) {
+		touch($site_dir . '/' . $file, filemtime($source_dir . '/' . $file));
+	}
 	print('OK<br>');
 
 } catch (Exception $e) {

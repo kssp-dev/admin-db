@@ -34,6 +34,7 @@ class MonitoringTargetTest extends ModalLoader {
 					, 'script_id' => $targetModel->get('script_id')
 					, 'target_ids' => $targetModel->get('id')
 					, 'call_function' => 'func_run_targets'
+					, 'temp_dir' => ''
 				];
 
 				$param='';
