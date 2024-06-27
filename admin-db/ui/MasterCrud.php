@@ -217,7 +217,7 @@ class MasterCrud extends View
         $crud->setModel($this->model);
 
         if (isset($crud->table->columns[$this->model->titleField])) {
-            $crud->addDecorator($this->model->titleField, [Table\Column\Link::class, [], [str_replace('.', '_', $this->model->table) . '_id' => 'id']]);
+            $crud->addDecorator($this->model->titleField, [Table\Column\Link::class, [], [str_replace('.', '_', $this->model->table) . '_id' => $this->model->idField]]);
         }
 
         $this->addActions($crud, $defs);
