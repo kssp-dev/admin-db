@@ -244,7 +244,7 @@ CREATE OR REPLACE VIEW "monitoring"."last_series" AS
 		FROM "monitoring"."series" "s"
 		GROUP BY "s"."uid"
 	)
-	SELECT "s"."id", "s"."time", "s"."uid", "s"."target_id"
+	SELECT "s"."id", "s"."time", "s"."uid", "s"."value", "s"."target_id", "s"."type_id"
 	FROM "w"
 	JOIN "monitoring"."series" "s"
 	ON "s"."time" = "wtime" AND "s"."uid" = "wuid";

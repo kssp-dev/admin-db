@@ -1257,7 +1257,6 @@ func_instance () {
 		if [ $code == 0 ]; then
 
 			func_run_scripts_clean
-			func_notify
 
 			echo --- Clear running flag ---
 
