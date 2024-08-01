@@ -12,9 +12,18 @@ class MonitoringLog extends EmptyNullModel {
 		$this->caption = 'Monitoring Log';
 
         $this->addFields([
-			  'time' => ['type' => 'datetime', 'neverSave' => true],
-			  'code' => ['type' => 'integer', 'neverSave' => true],
-			  'output' => ['type' => 'text', 'neverSave' => true]
+			'time' => [
+				'type' => 'datetime',
+				'neverSave' => true
+			],
+			'code' => [
+				'type' => 'integer',
+				'neverSave' => true
+			],
+			'output' => [
+				'type' => 'text',
+				'neverSave' => true
+			]
         ]);
         
         $this->getField('id')->neverSave = true;

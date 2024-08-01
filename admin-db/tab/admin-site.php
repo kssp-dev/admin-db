@@ -52,6 +52,12 @@ foreach (Filesystem::scandirtree($app_dir, 0) as $file) {
 					} else {
 						throw new Exception('SQL script reading error');
 					}
+					
+					$script = file_get_contents($app_dir . 'tool/templates.sql');
+
+					if ($script && (new MonitoringScript($app->db))->executeCountQuery() == 0) {
+						$app->db->getConnection()->getConnection()->exec($script);
+					}
 
 					array_push($output, 'Database is up to date now');
 				} catch (Exception $e) {

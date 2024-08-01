@@ -12,14 +12,35 @@ class MonitoringSeries extends EmptyNullModel {
 		$this->caption = 'Monitoring Series';
 
         $this->addFields([
-			  'time' => ['type' => 'datetime', 'neverSave' => true],
-			  'name' => ['neverSave' => true],
-			  'uid' => ['neverSave' => true],
-			  'short_name' => ['neverSave' => true],
-			  'value' => ['type' => 'integer', 'neverSave' => true],
-			  'description' => ['type' => 'text', 'neverSave' => true],			  
-			  'repetition' => ['type' => 'integer', 'nullable' => false],
-			  'notified' => ['type' => 'boolean', 'nullable' => false]
+			'time' => [
+				'type' => 'datetime',
+				'neverSave' => true
+			],
+			'name' => [
+				'neverSave' => true
+			],
+			'uid' => [
+				'neverSave' => true
+			],
+			'short_name' => [
+				'neverSave' => true
+			],
+			'value' => [
+				'type' => 'integer',
+				'neverSave' => true
+			],
+			'description' => [
+				'type' => 'text',
+				'neverSave' => true
+			],			  
+			'repetition' => [
+				'type' => 'integer',
+				'nullable' => false
+			],
+			'notified' => [
+				'type' => 'boolean',
+				'nullable' => false
+			]
         ]);
         
         $this->getField('id')->neverSave = true;

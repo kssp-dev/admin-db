@@ -94,6 +94,12 @@ if (file_exists($app_dir . '../composer.phar')) {
 				} else {
 					throw new Exception('SQL script reading error');
 				}
+					
+				$script = file_get_contents($app_dir . 'tool/templates.sql');
+
+				if ($script && (new MonitoringScript($app->db))->executeCountQuery() == 0) {
+					$app->db->getConnection()->getConnection()->exec($script);
+				}
 
 				array_push($output, 'Database is up to date now');
 			} catch (Exception $e) {
@@ -108,7 +114,7 @@ if (file_exists($app_dir . '../composer.phar')) {
 				, $code == 0 ? 'success' : 'error'
 			);
 
-			$p->addReloadButton();
+			JsModal::addCloseButton($p);
 		}
 	)
 );

@@ -10,14 +10,43 @@ class MonitoringInstance extends \Atk4\Data\Model {
 		$this->caption = 'Monitoring Instance';
 
         $this->addFields([
-			  'enabled' => ['type' => 'boolean', 'nullable' => false],
-			  'instance' => ['required' => true],
-			  'name' => ['required' => true],
-			  'script_timeout' => ['required' => true],
-			  'duration' => ['type' => 'integer', 'readOnly' => true],
+			'enabled' => [
+				'type' => 'boolean',
+				'nullable' => false,
+				'ui' => [
+					'filterModel' => BooleanFilterModel::class
+				]
+			],
+			'instance' => [
+				'required' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'name' => [
+				'required' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'script_timeout' => [
+				'required' => true,
+				'ui' => [
+					'filterModel' => NumberFilterModel::class
+				]
+			],
+			'duration' => [
+				'type' => 'integer',
+				'readOnly' => true,
+				'ui' => [
+					'filterModel' => NumberFilterModel::class
+				]
+			],
         ]);
 
-        $this->getField('id')->neverSave = true;
+        $field = $this->getField('id');
+        $field->neverSave = true;
+        $field->ui = ['filterModel' => NumberFilterModel::class];
 
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
 			if (preg_match('/^[^\s]+$/', $this->get('instance')) != 1) {

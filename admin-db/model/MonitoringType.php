@@ -12,12 +12,45 @@ class MonitoringType extends EmptyNullModel {
 		$this->caption = 'Monitoring Type';
 
         $this->addFields([
-			  'is_alert' => ['type' => 'boolean', 'nullable' => false],
-			  'name' => ['required' => true],
-			  'uid' => ['required' => true],
-			  'notification_delay' => ['type' => 'integer', 'nullable' => false],
-			  'notification_period' => ['type' => 'integer', 'nullable' => false],
-			  'description' => ['type' => 'text']
+			'is_alert' => [
+				'type' => 'boolean',
+				'nullable' => false,
+				'ui' => [
+					'filterModel' => BooleanFilterModel::class
+				]
+			],
+			'name' => [
+				'required' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'uid' => [
+				'required' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'notification_delay' => [
+				'type' => 'integer',
+				'nullable' => false,
+				'ui' => [
+					'filterModel' => NumberFilterModel::class
+				]
+			],
+			'notification_period' => [
+				'type' => 'integer',
+				'nullable' => false,
+				'ui' => [
+					'filterModel' => NumberFilterModel::class
+				]
+			],
+			'description' => [
+				'type' => 'text',
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			]
         ]);
         
         $this->getField('id')->neverSave = true;		

@@ -12,16 +12,55 @@ class MonitoringTarget extends EmptyNullModel {
 		$this->caption = 'Monitoring Target';
 
         $this->addFields([
-			  'enabled' => ['type' => 'boolean', 'nullable' => false],
-			  'name' => ['required' => true],
-			  'uid' => ['required' => true],
-			  'period' => ['type' => 'integer', 'required' => true],
-			  'target',
-			  'script_data' => ['type' => 'text'],
-			  'duration' => ['type' => 'integer', 'readOnly' => true],
+			'enabled' => [
+				'type' => 'boolean',
+				'nullable' => false,
+				'ui' => [
+					'filterModel' => BooleanFilterModel::class
+				]
+			],
+			'name' => [
+				'required' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'uid' => [
+				'required' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'period' => [
+				'type' => 'integer',
+				'required' => true,
+				'ui' => [
+					'filterModel' => NumberFilterModel::class
+				]
+			],
+			'target' => [
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'script_data' => [
+				'type' => 'text',
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'duration' => [
+				'type' => 'integer',
+				'readOnly' => true,
+				'ui' => [
+					'filterModel' => NumberFilterModel::class
+				]
+			],
         ]);
 
-        $this->getField('id')->neverSave = true;
+        $field = $this->getField('id');
+        $field->neverSave = true;
+        $field->ui = ['filterModel' => NumberFilterModel::class];
 
 		$this->hasOne('script_id', [
 			'required' => true,

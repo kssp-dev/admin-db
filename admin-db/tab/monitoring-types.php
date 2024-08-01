@@ -42,6 +42,7 @@ $crudOptions = [
 		]
 	]
 	, 'quickSearch' => ['name', 'uid', 'description']
+	, 'filterColumn' => true
 	, 'menuActions' => []
 	, 'columnActions' => [
 		'Remove Series' => [

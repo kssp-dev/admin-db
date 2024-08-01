@@ -47,6 +47,9 @@ if (!isset($title)) {
 
 require_once $app_dir . '../vendor/autoload.php';
 
+foreach (glob($app_dir . 'ui/*/*.php') as $file) {
+    require_once $file;
+}
 foreach (glob($app_dir . 'ui/*.php') as $file) {
     require_once $file;
 }

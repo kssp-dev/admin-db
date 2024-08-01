@@ -35,6 +35,7 @@ $crudOptions = [
 		]
 	]
 	, 'quickSearch' => ['uid', 'name', 'description']
+	, 'filterColumn' => true
 	, 'menuActions' => []
 	, 'columnActions' => [
 		'Notification Test' => [

@@ -38,6 +38,7 @@ class MasterCrud extends View
 		, 'columnActions'
 		, 'menuActions'
 		, 'quickSearch'
+		, 'filterColumn'
 	];
 
     /** @var string Delimiter to generate url path DO NOT USED '?', '#' or '/' */
@@ -221,6 +222,7 @@ class MasterCrud extends View
         }
 
         $this->addActions($crud, $defs);
+        $this->addFilterColumn($crud, $defs);
     }
 
     /**
@@ -261,11 +263,25 @@ class MasterCrud extends View
     }
 
     /**
+     * Adds CRUD column filters.
+     */
+    public function addFilterColumn(View $crud, array $defs)
+	{
+		if (isset($defs['filterColumn'])) {
+			if (is_array($defs['filterColumn'])) {
+				$crud->addFilterColumn($defs['filterColumn']);
+			} else {
+				$crud->addFilterColumn();
+			}
+		}
+    }
+
+    /**
      * Adds CRUD action buttons.
      */
     public function addActions(View $crud, array $defs)
     {
-		if ($defs['quickSearch']) {
+		if (isset($defs['quickSearch'])) {
 			$crud->addQuickSearch($defs['quickSearch'], true);
 		}
 

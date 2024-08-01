@@ -101,6 +101,9 @@ CREATE SCHEMA IF NOT EXISTS "monitoring";
 COMMENT ON SCHEMA "monitoring" IS 'Data based monitoring system database';
 
 
+--ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "script_timeout" SMALLINT NOT NULL DEFAULT 30 CHECK ("script_timeout" > 0);
+--ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
+
 CREATE TABLE IF NOT EXISTS "monitoring"."instances" (
   "id" SERIAL PRIMARY KEY,
   "enabled" BOOLEAN NOT NULL DEFAULT FALSE,
@@ -113,9 +116,12 @@ CREATE TABLE IF NOT EXISTS "monitoring"."instances" (
 );
 COMMENT ON TABLE "monitoring"."instances" IS 'Monitoring instances list';
 
---ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "script_timeout" SMALLINT NOT NULL DEFAULT 30 CHECK ("script_timeout" > 0);
---ALTER TABLE IF EXISTS "monitoring"."instances" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
 
+--ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_delay" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_delay" >= 0);
+--ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_delay" DROP DEFAULT;
+--ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_period" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_period" >= 0);
+--ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_period" DROP DEFAULT;
+--ALTER TABLE IF EXISTS "monitoring"."types" ADD CHECK ("notification_period" = 0 OR "notification_period" > "notification_delay");
 
 CREATE TABLE IF NOT EXISTS "monitoring"."types" (
   "id" SERIAL PRIMARY KEY,
@@ -129,12 +135,10 @@ CREATE TABLE IF NOT EXISTS "monitoring"."types" (
 );
 COMMENT ON TABLE "monitoring"."types" IS 'Types of monitoring';
 
---ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_delay" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_delay" >= 0);
---ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_delay" DROP DEFAULT;
---ALTER TABLE IF EXISTS "monitoring"."types" ADD COLUMN IF NOT EXISTS "notification_period" SMALLINT NOT NULL DEFAULT 0 CHECK ("notification_period" >= 0);
---ALTER TABLE IF EXISTS "monitoring"."types" ALTER COLUMN "notification_period" DROP DEFAULT;
---ALTER TABLE IF EXISTS "monitoring"."types" ADD CHECK ("notification_period" = 0 OR "notification_period" > "notification_delay");
 
+--ALTER TABLE IF EXISTS "monitoring"."scripts" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
+--ALTER TABLE IF EXISTS "monitoring"."scripts" ALTER COLUMN "login" DROP DEFAULT;
+ALTER TABLE IF EXISTS "monitoring"."scripts" ALTER COLUMN "login" DROP NOT NULL;
 
 CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "id" SERIAL PRIMARY KEY,
@@ -144,13 +148,14 @@ CREATE TABLE IF NOT EXISTS "monitoring"."scripts" (
   "script" TEXT NOT NULL,
   "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0),
   "updated" DATE NOT NULL DEFAULT NOW(),
-  "login" VARCHAR(31) NOT NULL
+  "login" VARCHAR(31) NULL
 );
 COMMENT ON TABLE "monitoring"."scripts" IS 'Scripts run on monitoring instances';
 
---ALTER TABLE IF EXISTS "monitoring"."scripts" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
---ALTER TABLE IF EXISTS "monitoring"."scripts" ALTER COLUMN "login" DROP DEFAULT;
 
+--ALTER TABLE IF EXISTS "monitoring"."targets" DROP CONSTRAINT IF EXISTS "targets_target_script_id_key";
+--ALTER TABLE IF EXISTS "monitoring"."targets" ALTER COLUMN "target" DROP NOT NULL;
+--ALTER TABLE IF EXISTS "monitoring"."targets" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
 
 CREATE TABLE IF NOT EXISTS "monitoring"."targets" (
   "id" SERIAL PRIMARY KEY,
@@ -169,9 +174,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS "targets_name_script_id_key" ON "monitoring"."
 --CREATE UNIQUE INDEX IF NOT EXISTS "targets_target_script_id_key" ON "monitoring"."targets" ("target", "script_id");
 COMMENT ON TABLE "monitoring"."targets" IS 'Data sources scripts fetch information from';
 
---ALTER TABLE IF EXISTS "monitoring"."targets" DROP CONSTRAINT IF EXISTS "targets_target_script_id_key";
---ALTER TABLE IF EXISTS "monitoring"."targets" ALTER COLUMN "target" DROP NOT NULL;
---ALTER TABLE IF EXISTS "monitoring"."targets" ADD COLUMN IF NOT EXISTS "duration" INTEGER NOT NULL DEFAULT 0 CHECK ("duration" >= 0);
 
 CREATE TABLE IF NOT EXISTS "monitoring"."log" (
   "id" SERIAL PRIMARY KEY,
@@ -183,6 +185,12 @@ CREATE TABLE IF NOT EXISTS "monitoring"."log" (
 CREATE INDEX IF NOT EXISTS "log_time_idx" ON "monitoring"."log" ("time");
 COMMENT ON TABLE "monitoring"."log" IS 'Debug information';
 
+
+--ALTER TABLE IF EXISTS "monitoring"."series" ALTER COLUMN "target_id" DROP NOT NULL;
+--ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "type_id" INTEGER NOT NULL REFERENCES "monitoring"."types" DEFAULT 1;
+--ALTER TABLE IF EXISTS "monitoring"."series" ALTER COLUMN "type_id" DROP DEFAULT;
+--ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "notified" BOOLEAN NOT NULL DEFAULT FALSE;
+--ALTER TABLE IF EXISTS "monitoring"."series" DROP COLUMN IF EXISTS "is_alert";
 
 CREATE TABLE IF NOT EXISTS "monitoring"."series" (
   "id" SERIAL PRIMARY KEY,
@@ -200,13 +208,6 @@ CREATE TABLE IF NOT EXISTS "monitoring"."series" (
 CREATE INDEX IF NOT EXISTS "series_time_idx" ON "monitoring"."series" ("time");
 CREATE INDEX IF NOT EXISTS "series_uid_idx" ON "monitoring"."series" ("uid");
 COMMENT ON TABLE "monitoring"."series" IS 'Time series of metrics and alerts';
-
---ALTER TABLE IF EXISTS "monitoring"."series" ALTER COLUMN "target_id" DROP NOT NULL;
-
---ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "type_id" INTEGER NOT NULL REFERENCES "monitoring"."types" DEFAULT 1;
---ALTER TABLE IF EXISTS "monitoring"."series" ALTER COLUMN "type_id" DROP DEFAULT;
---ALTER TABLE IF EXISTS "monitoring"."series" ADD COLUMN IF NOT EXISTS "notified" BOOLEAN NOT NULL DEFAULT FALSE;
---ALTER TABLE IF EXISTS "monitoring"."series" DROP COLUMN IF EXISTS "is_alert";
 
 
 DROP VIEW IF EXISTS "monitoring"."alerts";

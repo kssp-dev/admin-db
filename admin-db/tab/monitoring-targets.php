@@ -43,6 +43,7 @@ $crudOptions = [
 		]
 	]
 	, 'quickSearch' => ['id', 'name', 'uid', 'script_uid', 'target', 'instance']
+	, 'filterColumn' => true
 	, 'menuActions' => []
 	, 'columnActions' => [
 		'Clone Target' => [

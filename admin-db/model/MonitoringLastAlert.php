@@ -12,12 +12,45 @@ class MonitoringLastAlert extends MonitoringSeriesView {
 		$this->caption = 'Monitoring Last Alert';
 
         $this->addFields([
-			  'time' => ['type' => 'datetime', 'neverSave' => true],
-			  'value' => ['type' => 'integer', 'neverSave' => true],
-			  'uid' => ['neverSave' => true],
-			  'name' => ['neverSave' => true],
-			  'short_name' => ['neverSave' => true],
-			  'description' => ['type' => 'text', 'neverSave' => true]
+			'time' => [
+				'type' => 'datetime',
+				'neverSave' => true,
+				'ui' => [
+					'filterModel' => DatetimeFilterModel::class
+				]
+			],
+			'value' => [
+				'type' => 'integer',
+				'neverSave' => true,
+				'ui' => [
+					'filterModel' => MonitoringAlertValueFilterModel::class
+				]
+			],
+			'uid' => [
+				'neverSave' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'name' => [
+				'neverSave' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'short_name' => [
+				'neverSave' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'description' => [
+				'type' => 'text',
+				'neverSave' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			]
         ]);
 		
 		$this->idField = 'uid';

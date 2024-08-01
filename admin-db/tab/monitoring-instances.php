@@ -37,6 +37,7 @@ $crudOptions = [
 		]
 	]
 	, 'quickSearch' => ['id', 'instance', 'name']
+	, 'filterColumn' => true
 	, 'menuActions' => []
 	, 'columnActions' => []
 ];

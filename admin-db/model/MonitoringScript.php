@@ -10,16 +10,54 @@ class MonitoringScript extends \Atk4\Data\Model {
 		$this->caption = 'Monitoring Script';
 
         $this->addFields([
-			  'enabled' => ['type' => 'boolean', 'nullable' => false],
-			  'name' => ['required' => true],
-			  'uid' => ['required' => true],
-			  'script' => ['type' => 'text', 'ui' => ['form' => [AceEditor::class]]],
-			  'updated' => ['type' => 'date'],
-			  'login',
-			  'duration' => ['type' => 'integer', 'readOnly' => true],
+			'enabled' => [
+				'type' => 'boolean',
+				'nullable' => false,
+				'ui' => [
+					'filterModel' => BooleanFilterModel::class
+				]
+			],
+			'name' => [
+				'required' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'uid' => [
+				'required' => true,
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'script' => [
+				'type' => 'text',
+				'ui' => [
+					'form' => [AceEditor::class]
+				]
+			],
+			'updated' => [
+				'type' => 'date',
+				'ui' => [
+					'filterModel' => DateFilterModel::class
+				]
+			],
+			'login' => [
+				'ui' => [
+					'filterModel' => StringFilterModel::class
+				]
+			],
+			'duration' => [
+				'type' => 'integer',
+				'readOnly' => true,
+				'ui' => [
+					'filterModel' => NumberFilterModel::class
+				]
+			],
         ]);
 
-        $this->getField('id')->neverSave = true;
+        $field = $this->getField('id');
+        $field->neverSave = true;
+        $field->ui = ['filterModel' => NumberFilterModel::class];
 
 		$this->onHookShort(\Atk4\Data\Model::HOOK_VALIDATE, function () {
 			global $app;
